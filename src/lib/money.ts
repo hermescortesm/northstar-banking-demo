@@ -13,7 +13,7 @@ export type AmountParseResult =
   | { ok: true; cents: Cents }
   | { ok: false; reason: AmountParseFailure };
 
-const AMOUNT_RE = /^(\d+|\d{1,3}(?:,\d{3})+)(?:\.(\d*))?$/;
+const AMOUNT_RE = /^(\d+|[1-9]\d{0,2}(?:,\d{3})+)(?:\.(\d*))?$/;
 
 /**
  * Parse a user-entered dollar amount ("1250", "1,250.5", "$1,250.50") into a

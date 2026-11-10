@@ -8,7 +8,7 @@ describe("parseAmountToCents", () => {
   it.each([
     ["1", 100], ["1.5", 150], ["1.50", 150], ["0.01", 1], ["1.", 100], ["1,250", 125000],
     ["1,250.5", 125050], ["$1,250.00", 125000], ["  42.10  ", 4210], ["0.10", 10], ["19.99", 1999],
-    ["1234567890.99", 123456789099], ["007", 700],
+    ["1234567890.99", 123456789099], ["007", 700], ["0.50", 50], ["100,000", 10000000],
   ])("accepts %j -> %j", (input, cents) => expect(parseAmountToCents(input)).toBe(cents));
 
   it("is exact where floats are not (0.1 + 0.2 style)", () => {
@@ -18,7 +18,7 @@ describe("parseAmountToCents", () => {
     expect(parseAmountToCents("8.2")).toBe(820);
   });
 
-  it.each(["", "   ", "abc", "NaN", "Infinity", "1e3", "0x10", "1.2.3", "$", "--1", "1,23", "1,2345", ",100", "1 000", "12abc", "€5", "+5", "1,00,000", ".5"])(
+  it.each(["", "   ", "abc", "NaN", "Infinity", "1e3", "0x10", "1.2.3", "$", "--1", "1,23", "1,2345", ",100", "1 000", "12abc", "€5", "+5", "1,00,000", ".5", "0,001", "00,100", "0,100.00", "01,000"])(
     "rejects junk %j", (input) => expect(parseAmountToCents(input)).toBeNull());
 
   it("rejects more than two decimals (no rounding)", () => {
