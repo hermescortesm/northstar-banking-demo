@@ -36,7 +36,7 @@ e2e/            Playwright specs (feature, integration, responsive, a11y)
 
 ```bash
 npm ci
-npm run dev          # http://localhost:3000
+npm run dev          # http://localhost:5050
 npm run typecheck
 npm run lint
 npm test             # unit tests (Vitest)
