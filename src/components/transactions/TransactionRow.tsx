@@ -3,6 +3,7 @@ import { formatDayShort } from "@/lib/dates";
 import { formatSignedCents } from "@/lib/money";
 import { stagger } from "@/lib/motion";
 import type { Transaction } from "@/lib/types";
+import { useReveal } from "../ui/Reveal";
 import { Money } from "../ui/Money";
 import { SimTag, STATUS_LABEL, StatusPill } from "../ui/Badge";
 import { CategoryTile, GRID } from "./parts";
@@ -11,10 +12,13 @@ import { CategoryTile, GRID } from "./parts";
 export function TransactionRow({
   t, i, accountText, onOpen,
 }: { t: Transaction; i: number; accountText: string; onOpen: (t: Transaction, el: HTMLElement) => void }) {
+  const [ref, reveal] = useReveal<HTMLButtonElement>();
   const date = formatDayShort(t.day);
   const cat = CATEGORIES[t.category];
   return (
     <button
+      ref={ref}
+      data-reveal={reveal}
       type="button"
       onClick={(e) => onOpen(t, e.currentTarget)}
       aria-label={`${t.merchant}, ${formatSignedCents(t.amountCents)}, ${STATUS_LABEL[t.status]}, ${date}`}

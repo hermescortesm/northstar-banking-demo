@@ -12,10 +12,12 @@ import { LinkButton } from "@/components/ui/LinkButton";
 import { ListRow } from "@/components/ui/ListRow";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { SimTag, STATUS_LABEL } from "@/components/ui/Badge";
+import { Reveal } from "@/components/ui/Reveal";
 import { Stat } from "@/components/ui/Stat";
 import { TODAY } from "@/lib/data";
 import { formatDayLong } from "@/lib/dates";
 import { stagger } from "@/lib/motion";
+import { formatWholeDollars } from "@/lib/money";
 import { RANGE_KEYS, buildOverview } from "@/lib/overview";
 import { useFlash } from "@/lib/useFlash";
 import { useLedger } from "@/state/LedgerProvider";
@@ -55,7 +57,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="enter flex flex-col items-start gap-[18px]" style={stagger(0)}>
+      <Reveal className="enter flex flex-col items-start gap-[18px]" style={stagger(0)}>
         <div>
           <h1 className="text-[30px] font-semibold leading-[1.05] tracking-[-0.035em] max-[720px]:text-[28px]">Good morning, Avery</h1>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-text-3">
@@ -74,10 +76,10 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
             View transactions
           </LinkButton>
         </div>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-[minmax(0,1fr)_340px] items-stretch gap-5 max-[1180px]:grid-cols-1">
-        <Card as="section" aria-labelledby="tc-h" style={stagger(1)} className="enter flex min-w-0 flex-col overflow-hidden px-6 pt-[22px] max-[720px]:px-[18px] max-[720px]:pt-5">
+        <Card as="section" reveal aria-labelledby="tc-h" style={stagger(1)} className="enter flex min-w-0 flex-col overflow-hidden px-6 pt-[22px] max-[720px]:px-[18px] max-[720px]:pt-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div id="tc-h" className="flex flex-wrap items-center gap-x-2 text-[13px] font-medium text-text-3">
@@ -114,24 +116,25 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
 
           <BalanceChart points={m.points} summary={m.chartSummary} />
 
-          <div data-testid="kpis" className="-mx-6 mt-2 grid grid-cols-3 border-t border-border max-[720px]:-mx-[18px] max-[720px]:grid-cols-1">
-            {kpis.map((k) => (
+          <Reveal data-testid="kpis" className="-mx-6 mt-2 grid grid-cols-3 border-t border-border max-[720px]:-mx-[18px] max-[720px]:grid-cols-1">
+            {kpis.map((k, i) => (
               <Stat
                 key={k.id}
+                style={stagger(i)}
                 testId={`kpi-${k.id}`}
                 label={k.label}
                 value={<span key={range} className="animate-fade">{k.value}</span>}
                 note={k.note}
                 dot={k.dot}
                 valueColor={k.color}
-                className="border-r border-border px-6 pb-[18px] pt-4 last:border-r-0 max-[720px]:flex-row max-[720px]:flex-wrap max-[720px]:items-center max-[720px]:justify-between max-[720px]:border-b max-[720px]:border-r-0 max-[720px]:px-[18px] max-[720px]:py-3.5 max-[720px]:last:border-b-0"
+                className="enter border-r border-border px-6 pb-[18px] pt-4 last:border-r-0 max-[720px]:flex-row max-[720px]:flex-wrap max-[720px]:items-center max-[720px]:justify-between max-[720px]:border-b max-[720px]:border-r-0 max-[720px]:px-[18px] max-[720px]:py-3.5 max-[720px]:last:border-b-0"
               />
             ))}
-          </div>
+          </Reveal>
         </Card>
 
         <div className="flex min-w-0 flex-col gap-5 max-[1180px]:grid max-[1180px]:grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))]">
-          <Card as="section" aria-labelledby="ac-h" className="enter" style={stagger(2)}>
+          <Card as="section" reveal aria-labelledby="ac-h" className="enter" style={stagger(2)}>
             <CardHeader>
               <CardTitle id="ac-h">Accounts</CardTitle>
               <CardSub>Posted balances</CardSub>
@@ -162,7 +165,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
             ))}
           </Card>
 
-          <Card as="section" aria-labelledby="in-h" className="enter" style={stagger(3)}>
+          <Card as="section" reveal aria-labelledby="in-h" className="enter" style={stagger(3)}>
             <CardHeader flush>
               <CardTitle id="in-h">Insights</CardTitle>
               <CardSub>From posted activity</CardSub>
@@ -182,7 +185,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
         </div>
       </div>
 
-      <Card as="section" aria-labelledby="sc-h" className="enter" style={stagger(4)}>
+      <Card as="section" reveal aria-labelledby="sc-h" className="enter" style={stagger(4)}>
         <CardHeader flush>
           <div>
             <CardTitle id="sc-h">Spending by category</CardTitle>
@@ -217,7 +220,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
                     <i className="pop inline-block size-2 flex-none rounded-[2px]" style={{ background: c.color, "--pop-from": 0 } as CSSProperties} />
                     <span className="truncate">{c.name}</span>
                   </span>
-                  <span key={`a-${range}`} className="num animate-fade font-medium">{`$${Math.floor((c.cents + 50) / 100).toLocaleString("en-US")}`}</span>
+                  <span key={`a-${range}`} className="num animate-fade font-medium">{formatWholeDollars(m.categories.dollars[i] * 100)}</span>
                   <span key={`p-${range}`} className="num animate-fade text-right text-text-3">{c.percent.toFixed(0)}%</span>
                 </Link>
               ))}
@@ -226,7 +229,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
         </div>
       </Card>
 
-      <Card as="section" aria-labelledby="rt-h" className="enter" style={stagger(5)}>
+      <Card as="section" reveal aria-labelledby="rt-h" className="enter" style={stagger(5)}>
         <CardHeader>
           <CardTitle id="rt-h">Recent transactions</CardTitle>
           <LinkButton href="/transactions" variant="ghost" size="sm" className="!h-11 !px-2 !text-xs not-phone:!h-7">
@@ -253,7 +256,13 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
                     {t.simulated && <SimTag />}
                   </>
                 }
-                subtitle={t.sub}
+                subtitle={
+                  // The account stays whole on narrow screens; the date/category part truncates first.
+                  <span className="flex gap-1">
+                    <span className="min-w-0 truncate">{t.subLead} ·</span>{" "}
+                    <span className="flex-none whitespace-nowrap">{t.subTail}</span>
+                  </span>
+                }
                 trailing={
                   <>
                     <span className={`num font-medium ${t.incoming ? "text-pos" : ""}`}>{t.amount}</span>

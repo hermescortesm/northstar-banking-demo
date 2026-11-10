@@ -1,4 +1,4 @@
-import { animationsDone } from "./helpers";
+import { animationsDone, revealAll } from "./helpers";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -6,6 +6,7 @@ const rows = (page: Page) => page.getByRole("button", { name: /, [+−]\$[\d,.]+
 
 async function axe(page: Page) {
   // colour transitions in flight would be measured mid-fade by the contrast rule
+  await revealAll(page); // scroll-revealed blocks start hidden (opacity 0): reveal them so contrast is measured on the real state
   await animationsDone(page); // finite animations only: shimmer/spinner loop forever
   const r = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

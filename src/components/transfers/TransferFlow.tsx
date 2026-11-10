@@ -5,6 +5,7 @@ import { CATEGORIES, MEMO_MAX } from "@/lib/data";
 import { formatDayShort } from "@/lib/dates";
 import { SIM_CLOCK, validateTransfer } from "@/lib/ledger";
 import { formatCents } from "@/lib/money";
+import { stagger } from "@/lib/motion";
 import {
   fieldDomId, firstErrorField, formatAmountOnBlur, memoCounter, nextRequestId, reviewBalances, submitFailureMessage,
 } from "@/lib/transfer-form";
@@ -336,7 +337,7 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
           )}
         </div>
 
-        <Card as="aside" className="sticky top-[88px] max-[1180px]:static" aria-label="Account balances">
+        <Card as="aside" reveal className="enter sticky top-[88px] max-[1180px]:static" aria-label="Account balances">
           <CardHeader className="!pb-1.5">
             <CardTitle>Account balances</CardTitle>
           </CardHeader>
@@ -357,7 +358,7 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
         </Card>
       </div>
 
-      <Card as="section" aria-labelledby="rx-h">
+      <Card as="section" reveal className="enter" style={stagger(1)} aria-labelledby="rx-h">
         <CardHeader>
           <div>
             <CardTitle id="rx-h">Recent transfers</CardTitle>

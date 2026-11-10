@@ -108,6 +108,8 @@ test("spending donut draws one arc per category and the rows are interactive", a
   expect(n).toBeGreaterThan(2);
   await expect(page.locator("[aria-label^='Spending breakdown'] circle.donut-arc")).toHaveCount(n);
   await expect(page.getByTestId("spend-total")).toBeVisible();
+  await rows.first().scrollIntoViewIfNeeded(); // below the fold at this height: let scroll reveal run first
+  await expect(page.locator("section[aria-labelledby='sc-h']")).not.toHaveAttribute("data-reveal", "pending");
   await animationsDone(page);
   const before = await rows.first().evaluate((e) => getComputedStyle(e).backgroundColor);
   await rows.first().hover();
