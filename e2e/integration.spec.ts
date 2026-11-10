@@ -13,7 +13,7 @@ async function overviewState(page: Page) {
   await expect(page.getByTestId("hero-total")).toBeVisible();
   const total = Number(await page.getByTestId("hero-total").getAttribute("data-cents"));
   const cards = await page.getByTestId("account-card").evaluateAll((els) => els.map((e) => Number(e.getAttribute("data-cents"))));
-  const sidebar = await page.locator("aside#sidebar").getByRole("link", { name: /^View .+ transactions$/ }).allInnerTexts();
+  const sidebar = await page.locator("aside#sidebar").locator('a[href^="/transactions?account="]').allInnerTexts();
   return { total, cards, sidebar };
 }
 
@@ -68,7 +68,7 @@ test("Overview 'View all' opens the full list; account and category links open c
   // category row -> category + range filters, count matches the same filter applied by hand
   await nav(page, "Overview").click();
   const row = page.getByTestId("category-row").first();
-  const label = (await row.getAttribute("aria-label"))!.replace(/^View | transactions$/g, "");
+  const label = (await row.locator("span.truncate").textContent())!.trim();
   await row.click();
   await expect(page).toHaveURL(/\/transactions\?category=.+&range=30D/);
   await expect(page.getByLabel("Category")).toHaveValue(label);
