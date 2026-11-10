@@ -249,6 +249,15 @@ body {
   animation-delay: 0s;
 }
 
+/* Print and PDF capture never scroll: show everything. */
+@media print {
+  [data-reveal="pending"],
+  [data-reveal="pending"] * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Pop-in for small marks (icon tiles, colour squares, pills), staggered by the row's --i. */
 .pop {
   animation: ns-pop 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;

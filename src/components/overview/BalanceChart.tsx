@@ -72,7 +72,7 @@ export function BalanceChart({ points, summary }: { points: readonly CashFlowPoi
         </tbody>
       </table>
       </div>
-      <div ref={boxRef} className="h-[200px] not-phone:h-[246px]">
+      <div ref={boxRef} data-reveal={reveal} className="h-[200px] not-phone:h-[246px]">
         {reveal !== "pending" && <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart data={points as CashFlowPoint[]} margin={{ top: 8, right: 14, bottom: 0, left: 0 }} accessibilityLayer title={summary}>
             <defs>

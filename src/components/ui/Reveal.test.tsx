@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Reveal } from "./Reveal";
 
@@ -60,6 +60,15 @@ describe("Reveal / useReveal", () => {
     act(() => io.fire(true));
     expect(el().getAttribute("data-reveal")).toBe("seen");
     expect(io.disconnected).toBe(true);
+  });
+
+  it("reveals when the element or a descendant gets keyboard focus", () => {
+    at(1200);
+    render(<Reveal data-testid="r"><button>b</button></Reveal>);
+    expect(el().getAttribute("data-reveal")).toBe("pending");
+    act(() => { fireEvent.focusIn(screen.getByRole("button")); });
+    expect(el().getAttribute("data-reveal")).toBe("seen");
+    expect(FakeIO.all[0].disconnected).toBe(true);
   });
 
   it("treats the bottom 10% of the viewport as not reached yet", () => {

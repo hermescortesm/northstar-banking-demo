@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { animationsDone } from "./helpers";
+import { animationsDone, revealAll } from "./helpers";
 
 /** Scroll-triggered animation: a block below the fold stays un-animated until it is reached, once. */
 
@@ -203,4 +203,30 @@ test("Transactions and Transfers: rows and panels below the fold wait, then reve
   await animationsDone(page);
   expect(await panel.evaluate((e) => getComputedStyle(e).opacity)).toBe("1");
   await expect(panel.getByText("Recent transfers")).toBeVisible();
+});
+
+test("keyboard: Tab through Transactions rows at 390 never lands on a held row", async ({ page }) => {
+  await page.setViewportSize(MOBILE);
+  await page.goto("/transactions");
+  const rows = page.getByRole("button", { name: /, [+−]\$[\d,.]+, (Completed|Pending|Failed), / });
+  await expect(rows.first()).toBeVisible();
+  await rows.first().focus();
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press("Tab");
+    const label = await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "");
+    if (!/, [+−]\$/.test(label)) continue;
+    const focused = page.locator(":focus");
+    await expect(focused).not.toHaveAttribute("data-reveal", "pending");
+    await animationsDone(page); // it fades in; once settled the focused row must be fully visible
+    expect(await focused.evaluate((e) => getComputedStyle(e).opacity)).toBe("1");
+  }
+});
+
+test("short viewport: chart box leaves pending once reached and revealAll completes", async ({ page }) => {
+  await loadMobile(page, 480);
+  const box = page.getByTestId("balance-chart").locator("> div").last();
+  await expect(box).toHaveAttribute("data-reveal", "pending");
+  await revealAll(page);
+  await expect(box).not.toHaveAttribute("data-reveal", "pending");
+  await expect(page.locator("[data-reveal='pending']")).toHaveCount(0);
 });

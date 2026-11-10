@@ -27,16 +27,21 @@ export function useReveal<T extends HTMLElement = HTMLElement>() {
     el.dataset.reveal = "pending";
     el.getAnimations?.({ subtree: true }).forEach((a) => { a.currentTime = 0; });
     setState("pending");
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        setState("seen");
-      },
-      { rootMargin: `0px 0px -${MARGIN * 100}% 0px` },
-    );
+    const reveal = () => {
+      io.disconnect();
+      el.removeEventListener("focusin", reveal);
+      setState("seen");
+    };
+    // Keyboard focus reveals at once: a focused element must never sit invisible (focus ring included).
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && reveal(), {
+      rootMargin: `0px 0px -${MARGIN * 100}% 0px`,
+    });
     io.observe(el);
-    return () => io.disconnect();
+    el.addEventListener("focusin", reveal);
+    return () => {
+      io.disconnect();
+      el.removeEventListener("focusin", reveal);
+    };
   }, []);
   return [ref, state] as const;
 }
