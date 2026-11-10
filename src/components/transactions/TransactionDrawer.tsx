@@ -25,7 +25,7 @@ function buildSteps(t: Transaction): Step[] {
       sub: t.simulated ? "Instant · demo ledger only" : formatDayWithYear(t.day),
     });
   } else if (t.status === "pending") {
-    steps.push({ tone: "pend", icon: "clock", title: "Processing", sub: t.payout ? "Expected Nov 10" : "Expected within 1–2 business days" });
+    steps.push({ tone: "pend", icon: "clock", title: "Processing", sub: t.payout ? "Expected Nov 10" : "Expected within 1-2 business days" });
   } else {
     steps.push({ tone: "fail", icon: "x", title: card ? "Declined" : "Returned", sub: "Not included in balances" });
   }

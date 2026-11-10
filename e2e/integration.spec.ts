@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const nav = (page: Page, name: string) => page.getByRole("navigation", { name: "Main" }).getByRole("link", { name, exact: true });
 const rows = (page: Page) => page.getByRole("button", { name: /, [+−]\$[\d,.]+, (Completed|Pending|Failed), / });
 const shownCount = async (page: Page) => {
-  const t = (await page.getByText(/^Showing \d+–\d+ of /).textContent())!;
+  const t = (await page.getByText(/^Showing \d+-\d+ of /).textContent())!;
   return Number(t.replace(/^.* of /, "").replace(/,/g, ""));
 };
 const cents = (s: string) => Math.round(parseFloat(s.replace(/[^0-9.]/g, "")) * 100) * (/[−-]/.test(s.trim()[0]) ? -1 : 1);

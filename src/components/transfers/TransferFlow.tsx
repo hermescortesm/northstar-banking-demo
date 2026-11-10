@@ -389,7 +389,7 @@ export function TransferFlow() {
                   {[
                     ["From", acctLabel(fromAcct), `Balance ${review.from.before} → ${review.from.after}`],
                     ["To", acctLabel(toAcct), `Balance ${review.to.before} → ${review.to.after}`],
-                    ["Note", memo.trim() || "—", ""],
+                    ["Note", memo.trim() || "-", ""],
                     ["Arrives", "Instantly (simulated)", ""],
                     ["Fee", "$0.00", ""],
                   ].map(([k, v, small]) => (

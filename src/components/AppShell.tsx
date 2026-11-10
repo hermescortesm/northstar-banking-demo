@@ -9,7 +9,7 @@ import { transactionsHref } from "./overview/links";
 import { Icon } from "./icons";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
-const BADGE_TEXT = "Simulated demo — no real funds";
+const BADGE_TEXT = "Simulated demo - no real funds";
 
 function LogoMark() {
   return (
@@ -236,7 +236,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="mt-px text-warn">
               <Icon name="info" size={16} />
             </span>
-            <span>Demo with fictional data. Transfers are simulated — no real money moves.</span>
+            <span>Demo with fictional data. Transfers are simulated, so no real money moves.</span>
           </div>
           <div className="flex items-center gap-2.5 p-1.5">
             <span

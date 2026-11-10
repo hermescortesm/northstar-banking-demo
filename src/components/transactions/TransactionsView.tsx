@@ -226,7 +226,7 @@ export function TransactionsView({ initialFilters }: { initialFilters: Filters }
             ))}
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-[13px] text-text-3 max-[720px]:px-4">
               <span>
-                Showing {(cur - 1) * PAGE_SIZE + 1}–{Math.min(cur * PAGE_SIZE, sorted.length)} of {sorted.length.toLocaleString("en-US")}
+                Showing {(cur - 1) * PAGE_SIZE + 1}-{Math.min(cur * PAGE_SIZE, sorted.length)} of {sorted.length.toLocaleString("en-US")}
               </span>
               <nav aria-label="Pagination" className="flex items-center gap-1">
                 <PageBtn label="Previous page" disabled={cur <= 1} onClick={() => setPage(cur - 1)}><TxIcon name="chevLeft" size={14} /></PageBtn>

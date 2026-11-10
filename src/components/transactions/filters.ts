@@ -25,8 +25,8 @@ export const EMPTY_FILTERS: Filters = {
 export const PAGE_SIZE = 12;
 const RANGE_DAYS: Record<Exclude<DateRange, "all">, number> = { "7D": 7, "30D": 30, "90D": 90, "12M": 365 };
 
-const ERR_FORMAT = "Enter amounts as numbers, like 1500 or 1,500.00 — the amount filter isn’t applied.";
-const ERR_ORDER = "The minimum amount is higher than the maximum — the amount filter isn’t applied.";
+const ERR_FORMAT = "Enter amounts as numbers, like 1500 or 1,500.00. The amount filter isn’t applied.";
+const ERR_ORDER = "The minimum amount is higher than the maximum. The amount filter isn’t applied.";
 
 /** Lenient amount parse for filters: blank -> null, "0" -> 0, invalid -> "invalid". */
 function parseBound(text: string): Cents | null | "invalid" {

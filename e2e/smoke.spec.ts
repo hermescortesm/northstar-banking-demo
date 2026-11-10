@@ -5,7 +5,7 @@ const routes = [
   { path: "/transactions", label: "Transactions", h1: "Transactions" },
   { path: "/transfers", label: "Transfers", h1: "Transfers" },
 ];
-const BADGE = "Simulated demo — no real funds";
+const BADGE = "Simulated demo - no real funds";
 
 test("desktop: sidebar nav reaches each route", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -109,4 +109,14 @@ test("breakpoints are inclusive like the design (<=980 drawer, <=720 icon-only T
   await expect(label).toBeHidden();
   await page.setViewportSize({ width: 721, height: 800 });
   await expect(label).toBeVisible();
+});
+
+test("rendered text has no em or en dashes on any route", async ({ page }) => {
+  const bad = new RegExp(`[${String.fromCharCode(0x2013, 0x2014)}]`);
+  for (const { path, h1 } of routes) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1, name: h1 })).toBeVisible();
+    const text = await page.evaluate(() => document.body.innerText);
+    expect(bad.test(text), `dash found on ${path}`).toBe(false);
+  }
 });

@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 test("lists 12 per page with summary and pager", async ({ page }) => {
   await page.goto("/transactions");
   await expect(rows(page)).toHaveCount(12);
-  await expect(page.getByText(/^Showing 1–12 of /)).toBeVisible();
+  await expect(page.getByText(/^Showing 1-12 of /)).toBeVisible();
   await page.getByRole("button", { name: "Next page" }).click();
   await expect(page.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("button", { name: "Previous page" })).toBeEnabled();
