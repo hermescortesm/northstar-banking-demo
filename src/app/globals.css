@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Breakpoints match the design media queries (max-width is inclusive) */
+@custom-variant tablet (@media (max-width: 980px));
+@custom-variant desktop (@media (min-width: 981px));
+@custom-variant phone (@media (max-width: 720px));
+@custom-variant not-phone (@media (min-width: 721px));
+
+/* Design tokens: design-reference/project/Main.dc.html (light theme) */
+:root {
+  --bg: #edeff2;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --hover: #f1f3f5;
+  --border: #e5e7eb;
+  --border-strong: #d2d6dd;
+  --text: #0a0c10;
+  --text-2: #3b4250;
+  --text-3: #5f6676;
+  --accent: #067a57;
+  --accent-hi: #04664a;
+  --accent-fill: #17c38f;
+  --accent-ink: #03241a;
+  --accent-soft: #e7f8f1;
+  --accent-ring: rgba(23, 195, 143, 0.28);
+  --pos: #067a57;
+  --pos-soft: #e7f8f1;
+  --neg: #c2261b;
+  --neg-soft: #fdecea;
+  --warn: #9a5800;
+  --warn-soft: #fff4e0;
+  --info: #2851c7;
+  --info-soft: #eaf0fd;
+  --chart-line: #13b585;
+  --chart-out: #cbd0d8;
+  --shadow-sm: 0 1px 2px rgba(10, 12, 16, 0.04);
+  --shadow-md: 0 6px 20px rgba(10, 12, 16, 0.08);
+  --shadow-lg: 0 24px 64px rgba(10, 12, 16, 0.18), 0 2px 8px rgba(10, 12, 16, 0.06);
+  --scrim: rgba(10, 12, 16, 0.38);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-hover: var(--hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-hi: var(--accent-hi);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ring: var(--accent-ring);
+  --color-pos: var(--pos);
+  --color-pos-soft: var(--pos-soft);
+  --color-neg: var(--neg);
+  --color-neg-soft: var(--neg-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-scrim: var(--scrim);
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --shadow-lg: var(--shadow-lg);
+  --font-sans: var(--font-geist), Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+a {
+  color: var(--accent);
+}
+a:hover {
+  color: var(--accent-hi);
+}
+
+/* Tabular numerals for money */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
