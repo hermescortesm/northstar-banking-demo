@@ -56,3 +56,57 @@ test("skip link is first tab stop and targets main", async ({ page }) => {
   await skip.press("Enter");
   await expect(page.locator("main#main")).toBeFocused();
 });
+
+test("M1: widening the viewport with the drawer open removes the scrim", async ({ page }) => {
+  await page.setViewportSize({ width: 600, height: 800 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.getByRole("button", { name: "Close navigation" }).first()).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.locator("button.bg-scrim")).toHaveCount(0);
+  // page is interactive again
+  await page.getByRole("navigation", { name: "Main", exact: true }).getByRole("link", { name: "Transfers" }).click();
+  await expect(page).toHaveURL("/transfers");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("M2: drawer is a modal dialog with focus management", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Open navigation" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Navigation" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expect(page.getByRole("button", { name: "Close navigation" }).last()).toBeFocused();
+  // Tab cycles inside the drawer, never leaving it
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest("#sidebar"))).toBe(true);
+  }
+  await page.keyboard.press("Shift+Tab");
+  expect(await page.evaluate(() => !!document.activeElement?.closest("#sidebar"))).toBe(true);
+  // Escape returns focus to the opener
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  // Close button also returns focus
+  await opener.click();
+  await page.getByRole("button", { name: "Close navigation" }).last().click();
+  await expect(opener).toBeFocused();
+});
+
+test("breakpoints are inclusive like the design (<=980 drawer, <=720 icon-only Transfer)", async ({ page }) => {
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Open navigation" });
+  await page.setViewportSize({ width: 980, height: 800 });
+  await expect(opener).toBeVisible();
+  await page.setViewportSize({ width: 981, height: 800 });
+  await expect(opener).toBeHidden();
+  const label = page.getByRole("link", { name: "Transfer" }).getByText("Transfer");
+  await page.setViewportSize({ width: 720, height: 800 });
+  await expect(label).toBeHidden();
+  await page.setViewportSize({ width: 721, height: 800 });
+  await expect(label).toBeVisible();
+});

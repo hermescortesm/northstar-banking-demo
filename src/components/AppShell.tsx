@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
@@ -31,15 +31,63 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const asideRef = useRef<HTMLElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
 
+  // User-initiated close: focus returns to the hamburger once the page is no longer inert.
+  const closeDrawer = useCallback(() => {
+    restoreFocus.current = true;
+    setMobileOpen(false);
+  }, []);
+
+  // Leaving the drawer layout (viewport wider than 980px) resets the open state, without moving focus.
   useEffect(() => {
-    if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const mql = window.matchMedia("(min-width: 981px)");
+    const onChange = (e: MediaQueryListEvent) => e.matches && setMobileOpen(false);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  // Focus management: into the drawer on open, back to the opener on close.
+  useEffect(() => {
+    if (mobileOpen) {
+      closeRef.current?.focus();
+    } else if (restoreFocus.current) {
+      restoreFocus.current = false;
+      openerRef.current?.focus();
+    }
   }, [mobileOpen]);
 
-  const lbl = collapsed ? `hidden max-[980px]:inline` : "";
+  // Escape closes; Tab is trapped inside the drawer while it is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return closeDrawer();
+      if (e.key !== "Tab" || !asideRef.current) return;
+      const items = Array.from(
+        asideRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), input"),
+      ).filter((el) => el.offsetParent !== null);
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (!asideRef.current.contains(active)) {
+        e.preventDefault();
+        first?.focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen, closeDrawer]);
+
+  const lbl = collapsed ? `hidden tablet:inline` : "";
 
   return (
     <div className="flex min-h-screen items-start bg-bg">
@@ -54,26 +102,30 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button
           type="button"
           aria-label="Close navigation"
-          onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-[45] cursor-pointer border-0 bg-scrim"
+          tabIndex={-1}
+          onClick={closeDrawer}
+          className="fixed inset-0 z-[45] cursor-pointer border-0 bg-scrim desktop:hidden"
         />
       )}
 
       <aside
         id="sidebar"
-        aria-label="Primary"
+        ref={asideRef}
+        aria-label={mobileOpen ? "Navigation" : "Primary"}
+        role={mobileOpen ? "dialog" : undefined}
+        aria-modal={mobileOpen ? true : undefined}
         className={[
           "sticky top-0 z-50 flex h-screen flex-none flex-col gap-1.5 overflow-y-auto overflow-x-hidden bg-bg px-2.5 py-3.5 transition-[width,transform] duration-200",
           collapsed ? "w-[76px]" : "w-64",
-          `max-[980px]:fixed max-[980px]:inset-y-0 max-[980px]:left-0 max-[980px]:!w-[284px] max-[980px]:h-auto`,
+          `tablet:fixed tablet:inset-y-0 tablet:left-0 tablet:!w-[284px] tablet:h-auto`,
           mobileOpen
-            ? `max-[980px]:visible max-[980px]:translate-x-0 max-[980px]:shadow-lg`
-            : `max-[980px]:invisible max-[980px]:-translate-x-full`,
+            ? `tablet:visible tablet:translate-x-0 tablet:shadow-lg`
+            : `tablet:invisible tablet:-translate-x-full`,
         ].join(" ")}
       >
         <div
           className={`flex items-center gap-2 px-1.5 pb-2.5 pt-0.5 ${
-            collapsed ? `justify-center max-[980px]:justify-between` : "justify-between"
+            collapsed ? `justify-center tablet:justify-between` : "justify-between"
           }`}
         >
           <Link
@@ -88,15 +140,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-expanded={!collapsed}
             onClick={() => setCollapsed((c) => !c)}
-            className={`${ghostIconBtn} ${collapsed ? "hidden" : "inline-flex"} max-[980px]:hidden`}
+            className={`${ghostIconBtn} ${collapsed ? "hidden" : "inline-flex"} tablet:hidden`}
           >
             <Icon name="panel" size={16} />
           </button>
           <button
             type="button"
+            ref={closeRef}
             aria-label="Close navigation"
-            onClick={() => setMobileOpen(false)}
-            className={`${ghostIconBtn} hidden max-[980px]:inline-flex max-[980px]:size-11`}
+            onClick={closeDrawer}
+            className={`${ghostIconBtn} hidden tablet:inline-flex tablet:size-11`}
           >
             <Icon name="x" size={16} />
           </button>
@@ -107,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label="Expand sidebar"
             aria-expanded={false}
             onClick={() => setCollapsed(false)}
-            className={`${ghostIconBtn} inline-flex size-11 self-center max-[980px]:hidden`}
+            className={`${ghostIconBtn} inline-flex size-11 self-center tablet:hidden`}
           >
             <Icon name="panel" size={16} />
           </button>
@@ -120,7 +173,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             FR
           </span>
-          <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden max-[980px]:flex` : ""}`}>
+          <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden tablet:flex` : ""}`}>
             <strong className="truncate text-[13px] font-semibold">Fernhill Robotics, Inc.</strong>
             <span className="text-xs text-text-3">Business · 3 accounts</span>
           </span>
@@ -135,11 +188,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 href={item.href}
                 title={item.label}
                 aria-current={active ? "page" : undefined}
-                onClick={() => setMobileOpen(false)}
+                onClick={closeDrawer}
                 className={[
                   "flex h-9 items-center gap-3 whitespace-nowrap rounded-[9px] px-3 font-medium transition-colors",
-                  `max-[980px]:h-11`,
-                  collapsed ? `justify-center px-0 max-[980px]:justify-start max-[980px]:px-3` : "",
+                  `tablet:h-11`,
+                  collapsed ? `justify-center px-0 tablet:justify-start tablet:px-3` : "",
                   active
                     ? "bg-surface !text-text shadow-[0_1px_2px_rgba(10,12,16,.06),0_0_0_1px_var(--border)]"
                     : "!text-text-2 hover:bg-hover hover:!text-text",
@@ -155,7 +208,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mt-auto flex flex-col gap-2.5">
           <div
             className={`gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-text-2 ${
-              collapsed ? `hidden max-[980px]:flex` : "flex"
+              collapsed ? `hidden tablet:flex` : "flex"
             } items-start`}
           >
             <span className="mt-px text-warn">
@@ -170,7 +223,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               AB
             </span>
-            <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden max-[980px]:flex` : ""}`}>
+            <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden tablet:flex` : ""}`}>
               <strong className="truncate text-[13px] font-semibold">Avery Brooks</strong>
               <span className="text-xs text-text-3">Founder &amp; CEO</span>
             </span>
@@ -179,17 +232,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div
-        className={`m-2 ml-0 flex min-h-[calc(100vh-16px)] min-w-0 flex-[999_1_560px] flex-col rounded-panel border border-border bg-surface shadow-[0_1px_3px_rgba(10,12,16,.04)] max-[980px]:m-0 max-[980px]:min-h-screen max-[980px]:rounded-none max-[980px]:border-0`}
+        inert={mobileOpen}
+        className={`m-2 ml-0 flex min-h-[calc(100vh-16px)] min-w-0 flex-[999_1_560px] flex-col rounded-panel border border-border bg-surface shadow-[0_1px_3px_rgba(10,12,16,.04)] tablet:m-0 tablet:min-h-screen tablet:rounded-none tablet:border-0`}
       >
         <div className="sticky top-0 z-40 rounded-t-panel border-b border-border bg-surface">
-          <header className={`flex items-center gap-2.5 px-7 py-3 max-[980px]:px-4 max-[980px]:py-2.5`}>
+          <header className={`flex items-center gap-2.5 px-7 py-3 tablet:px-4 tablet:py-2.5`}>
             <button
               type="button"
+              ref={openerRef}
               aria-label="Open navigation"
               aria-expanded={mobileOpen}
               aria-controls="sidebar"
               onClick={() => setMobileOpen(true)}
-              className={`${ghostIconBtn} hidden max-[980px]:inline-flex max-[980px]:size-11`}
+              className={`${ghostIconBtn} hidden tablet:inline-flex tablet:size-11`}
             >
               <Icon name="menu" />
             </button>
@@ -215,15 +270,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 placeholder="Search transactions"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="h-11 w-full rounded-full border border-border bg-surface-2 pl-[38px] pr-3 text-sm outline-none transition-[border-color,box-shadow] focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-ring)] min-[721px]:h-[38px] min-[721px]:pr-14"
+                className="h-11 w-full rounded-full border border-border bg-surface-2 pl-[38px] pr-3 text-sm outline-none transition-[border-color,box-shadow] focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-ring)] not-phone:h-[38px] not-phone:pr-14"
               />
-              <kbd className="absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-full border border-border bg-surface px-[7px] py-0.5 text-[11px] font-medium text-text-3 min-[721px]:block">
+              <kbd className="absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-full border border-border bg-surface px-[7px] py-0.5 font-sans text-[11px] font-medium text-text-3 not-phone:block">
                 Enter
               </kbd>
             </form>
             <div className="flex-1" />
             <span
-              className={`inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-warn/20 bg-warn-soft px-2.5 text-xs font-semibold text-warn max-[980px]:hidden`}
+              className={`inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-warn/20 bg-warn-soft px-2.5 text-xs font-semibold text-warn tablet:hidden`}
             >
               <Icon name="info" size={14} />
               {BADGE_TEXT}
@@ -231,14 +286,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link
               href="/transfers"
               aria-label="Transfer"
-              className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-accent-fill bg-accent-fill px-[15px] text-[13.5px] font-medium !text-accent-ink hover:brightness-[1.07] min-[721px]:h-9"
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-accent-fill bg-accent-fill px-[15px] text-[13.5px] font-medium !text-accent-ink hover:brightness-[1.07] not-phone:h-9"
             >
               <Icon name="swap" size={16} />
-              <span className="max-[720px]:hidden">Transfer</span>
+              <span className="phone:hidden">Transfer</span>
             </Link>
           </header>
           <div
-            className={`hidden items-center justify-center gap-1.5 border-t border-border bg-warn-soft px-4 py-1.5 text-xs font-semibold text-warn max-[980px]:flex`}
+            className={`hidden items-center justify-center gap-1.5 border-t border-border bg-warn-soft px-4 py-1.5 text-xs font-semibold text-warn tablet:flex`}
           >
             <Icon name="info" size={14} />
             {BADGE_TEXT}
@@ -248,7 +303,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main
           id="main"
           tabIndex={-1}
-          className={`mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-7 pb-[72px] pt-7 max-[980px]:px-4 max-[980px]:pb-16 max-[980px]:pt-5`}
+          className={`mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-7 pb-[72px] pt-7 tablet:px-4 tablet:pb-16 tablet:pt-5`}
         >
           {children}
         </main>
