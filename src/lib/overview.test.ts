@@ -3,7 +3,7 @@ import { createInitialLedgerState } from "./data";
 import { allBalances, totalCash } from "./ledger";
 import {
   RANGE_KEYS, balanceScale, buildOverview, deltaLabel, donutGradient, formatSignedWhole, niceStep, pctChangeText,
-  splitCents, xTickLabels,
+  reconcileWholeDollars, splitCents, xTickLabels,
 } from "./overview";
 
 describe("overview helpers", () => {
@@ -45,6 +45,27 @@ describe("overview helpers", () => {
   });
 });
 
+describe("reconcileWholeDollars", () => {
+  const sum = (a: number[]) => a.reduce((s, x) => s + x, 0);
+  it("plain rounding would drift by $1; the result sums to the rounded total", () => {
+    const cents = [1050, 1050, 1050]; // 10.50 x3: each rounds to 11 (33) but the total 31.50 rounds to 32
+    expect(sum(cents.map((c) => Math.round(c / 100)))).toBe(33);
+    const d = reconcileWholeDollars(cents);
+    expect(sum(d)).toBe(32);
+    expect(d).toEqual([11, 11, 10]);
+  });
+  it("gives the extra dollar to the largest fractions and is stable on ties", () => {
+    expect(reconcileWholeDollars([1090, 1020, 1090])).toEqual([11, 10, 11]);
+  });
+  it("leaves exact dollars and empty input alone", () => {
+    expect(reconcileWholeDollars([500, 1200])).toEqual([5, 12]);
+    expect(reconcileWholeDollars([])).toEqual([]);
+  });
+  it("rounds up when every part rounds down", () => {
+    expect(reconcileWholeDollars([149, 149, 149])).toEqual([2, 1, 1]); // total 4.47 -> 4, floors sum to 3
+  });
+});
+
 describe("buildOverview agrees with the ledger", () => {
   const state = createInitialLedgerState();
   const balances = allBalances(state);
@@ -60,6 +81,11 @@ describe("buildOverview agrees with the ledger", () => {
     expect(m.categories.totalCents).toBe(m.summary.raw.outCents);
     expect(m.points.reduce((s, p) => s + p.inCents, 0)).toBe(m.summary.raw.inCents);
     expect(m.points[m.points.length - 1].balanceCents).toBe(m.postedCents);
+  });
+  it.each(RANGE_KEYS)("range %s: category rows reconcile with the displayed total", (r) => {
+    const m = buildOverview(state, balances, totals, r);
+    expect(m.categories.dollars.reduce((a, b) => a + b, 0)).toBe(Math.floor((m.categories.totalCents + 50) / 100));
+    m.categories.rows.forEach((row, i) => expect(Math.abs(m.categories.dollars[i] - row.cents / 100)).toBeLessThan(1));
   });
   it("recent rows are the 5 newest", () => {
     const m = buildOverview(state, balances, totals, "30D");
