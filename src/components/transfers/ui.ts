@@ -1,6 +1,6 @@
 // Shared class strings for the transfers UI (design: .btn, .chip, .note, .input, .kv, .card).
 const btnBase =
-  "inline-flex h-11 not-phone:h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border px-[15px] text-[13.5px] font-medium no-underline transition-[background,border-color,opacity,filter] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0";
+  "inline-flex h-11 not-phone:h-9 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border px-[15px] text-[13.5px] font-medium no-underline transition-[background,border-color,opacity,filter,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0";
 
 export const btn = `${btnBase} border-border-strong bg-surface !text-text hover:bg-surface-2 hover:border-text-3`;
 export const btnPrimary = `${btnBase} border-text bg-text !text-surface hover:opacity-90`;

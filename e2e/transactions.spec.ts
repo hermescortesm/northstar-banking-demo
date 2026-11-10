@@ -1,3 +1,4 @@
+import { animationsDone } from "./helpers";
 import { expect, test, type Page } from "@playwright/test";
 
 const rows = (page: Page) => page.getByRole("button", { name: /, [+−]\$[\d,.]+, (Completed|Pending|Failed), / });
@@ -155,6 +156,7 @@ for (const width of [375, 390]) {
     await rows(page).first().click();
     const dlg = page.getByRole("dialog");
     await expect(dlg).toBeVisible();
+    await animationsDone(page);
     expect(((await dlg.boundingBox())!).width).toBeLessThanOrEqual(width);
     expect(await overflow()).toBe(false);
     await page.keyboard.press("Escape");

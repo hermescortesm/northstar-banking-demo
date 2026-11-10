@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { stagger } from "@/lib/motion";
+import { useFlash } from "@/lib/useFlash";
 import { Icon, isIconName, type IconName } from "@/components/icons";
 import { TODAY } from "@/lib/data";
 import { formatDayLong } from "@/lib/dates";
 import type { RangeKey } from "@/lib/ledger";
 import { RANGE_KEYS, buildOverview, type Insight } from "@/lib/overview";
 import { useLedger } from "@/state/LedgerProvider";
+import { OverviewSkeleton } from "@/components/skeletons/OverviewSkeleton";
 import { BalanceChart } from "./BalanceChart";
 import { transactionsHref } from "./links";
 
@@ -20,7 +23,7 @@ const rowSub = "block text-xs text-text-3";
 const swatch = "inline-block size-2 flex-none rounded-[2px]";
 const tile = "grid size-9 flex-none place-items-center rounded-[10px]";
 const btn =
-  "inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-[15px] text-[13.5px] font-medium no-underline transition-[background,border-color,filter] active:translate-y-px not-phone:h-9";
+  "inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-[15px] text-[13.5px] font-medium no-underline transition-[background,border-color,filter,transform] duration-150 active:translate-y-px not-phone:h-9";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   completed: { label: "Completed", cls: "bg-pos-soft text-pos" },
@@ -37,7 +40,17 @@ function insightIcon(i: Insight): IconName {
   return i.icon;
 }
 
-export function OverviewView() {
+function AccountPosted({ cents, text }: { cents: number; text: string }) {
+  const n = useFlash(cents);
+  return (
+    <span key={n} className={`${rowTitle} num ${n ? "flash" : ""}`} data-testid="account-posted">
+      {text}
+    </span>
+  );
+}
+
+/** `loading` renders the matching skeleton instead (same layout, no data). */
+export function OverviewView({ loading = false }: { loading?: boolean }) {
   const ledger = useLedger();
   const [range, setRange] = useState<RangeKey>("30D");
   const m = useMemo(
@@ -45,9 +58,12 @@ export function OverviewView() {
     [ledger.accounts, ledger.transactions, ledger.balances, ledger.totals, range],
   );
 
+  const totalFlash = useFlash(m.postedCents);
+  if (loading) return <OverviewSkeleton />;
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-start gap-[18px]">
+      <div className="enter flex flex-col items-start gap-[18px]" style={stagger(0)}>
         <div>
           <h1 className="text-[30px] font-semibold leading-[1.05] tracking-[-0.035em] max-[720px]:text-[28px]">
             Good morning, Avery
@@ -76,7 +92,8 @@ export function OverviewView() {
       <div className="grid grid-cols-[minmax(0,1fr)_340px] items-stretch gap-5 max-[1180px]:grid-cols-1">
         <section
           aria-labelledby="tc-h"
-          className={`${card} flex min-w-0 flex-col overflow-hidden px-6 pt-[22px] max-[720px]:px-[18px] max-[720px]:pt-5`}
+          style={stagger(1)}
+          className={`enter ${card} flex min-w-0 flex-col overflow-hidden px-6 pt-[22px] max-[720px]:px-[18px] max-[720px]:pt-5`}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
@@ -85,7 +102,8 @@ export function OverviewView() {
                 <span data-testid="range-dates">{m.rangeDates}</span>
               </div>
               <div
-                className="num mt-2.5 flex items-start leading-none"
+                key={totalFlash}
+                className={`num mt-2.5 flex items-start leading-none ${totalFlash ? "flash" : ""}`}
                 aria-label={`Total cash ${m.total.posted}`}
                 data-testid="hero-total"
                 data-cents={m.postedCents}
@@ -107,8 +125,9 @@ export function OverviewView() {
                   <strong className="num font-semibold" data-testid="hero-pending">{m.total.pending}</strong>
                 </span>
                 <span
+                  key={`d-${range}`}
                   data-testid="hero-delta"
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  className={`animate-fade inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
                     m.delta.negative ? "bg-neg-soft text-neg" : "bg-pos-soft text-pos"
                   }`}
                 >
@@ -129,7 +148,7 @@ export function OverviewView() {
                   type="button"
                   aria-pressed={range === r}
                   onClick={() => setRange(r)}
-                  className={`h-11 min-w-11 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-colors not-phone:h-7 not-phone:min-w-0 ${
+                  className={`h-11 min-w-11 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-[background-color,color,transform] duration-150 active:scale-95 not-phone:h-7 not-phone:min-w-0 ${
                     range === r ? "bg-text text-surface" : "bg-transparent text-text-2 hover:text-text"
                   }`}
                 >
@@ -163,7 +182,8 @@ export function OverviewView() {
                   {k.label}
                 </span>
                 <span
-                  className="num whitespace-nowrap text-[22px] font-semibold tracking-[-0.035em]"
+                  key={range}
+                className="num animate-fade whitespace-nowrap text-[22px] font-semibold tracking-[-0.035em]"
                   style={k.color ? { color: k.color } : undefined}
                   data-testid={`kpi-${k.id}-value`}
                 >
@@ -176,7 +196,7 @@ export function OverviewView() {
         </section>
 
         <div className="flex min-w-0 flex-col gap-5 max-[1180px]:grid max-[1180px]:grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))]">
-          <section aria-labelledby="ac-h" className={card}>
+          <section aria-labelledby="ac-h" className={`enter ${card}`} style={stagger(2)}>
             <div className={`${cardH} !pb-3.5`}>
               <h2 id="ac-h" className={h2}>Accounts</h2>
               <span className={sub}>Posted balances</span>
@@ -201,14 +221,14 @@ export function OverviewView() {
                   </span>
                 </span>
                 <span className="text-right">
-                  <span className={`${rowTitle} num`} data-testid="account-posted">{a.posted}</span>
+                  <AccountPosted cents={a.postedCents} text={a.posted} />
                   <span className={`${rowSub} num`}>{a.pendingText}</span>
                 </span>
               </Link>
             ))}
           </section>
 
-          <section aria-labelledby="in-h" className={card}>
+          <section aria-labelledby="in-h" className={`enter ${card}`} style={stagger(3)}>
             <div className={cardH}>
               <h2 id="in-h" className={h2}>Insights</h2>
               <span className={sub}>From posted activity</span>
@@ -230,7 +250,7 @@ export function OverviewView() {
         </div>
       </div>
 
-      <section aria-labelledby="sc-h" className={card}>
+      <section aria-labelledby="sc-h" className={`enter ${card}`} style={stagger(4)}>
         <div className={cardH}>
           <div>
             <h2 id="sc-h" className={h2}>Spending by category</h2>
@@ -240,9 +260,10 @@ export function OverviewView() {
         <div className="px-5 pb-5 pt-4">
           <div className="grid grid-cols-[168px_minmax(0,1fr)] items-center gap-6 max-[720px]:grid-cols-1 max-[720px]:justify-items-center">
             <div
+              key={range}
               role="img"
               aria-label={`Spending breakdown by category, ${m.categories.total} total`}
-              className="relative size-[168px] rounded-full after:absolute after:inset-[22px] after:rounded-full after:bg-surface after:content-['']"
+              className="animate-pop relative size-[168px] rounded-full after:absolute after:inset-[22px] after:rounded-full after:bg-surface after:content-['']"
               style={{ background: `conic-gradient(${m.categories.gradient})` }}
             >
               <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center text-center">
@@ -259,7 +280,7 @@ export function OverviewView() {
                   key={c.name}
                   data-testid="category-row"
                   href={transactionsHref(c.other ? { type: "out", range } : { category: c.name, range })}
-                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg py-[7px] text-[13px] max-[720px]:min-h-11 !text-text no-underline"
+                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg transition-transform duration-150 hover:translate-x-0.5 py-[7px] text-[13px] max-[720px]:min-h-11 !text-text no-underline"
                 >
                   <span className="flex min-w-0 items-center gap-2 group-hover:text-accent">
                     <i className={swatch} style={{ background: c.color }} />
@@ -274,7 +295,7 @@ export function OverviewView() {
         </div>
       </section>
 
-      <section aria-labelledby="rt-h" className={card}>
+      <section aria-labelledby="rt-h" className={`enter ${card}`} style={stagger(5)}>
         <div className={`${cardH} !pb-3.5`}>
           <h2 id="rt-h" className={h2}>Recent transactions</h2>
           <Link
@@ -287,10 +308,10 @@ export function OverviewView() {
         </div>
         {m.recent.length === 0 && <p className={`${sub} border-t border-border px-5 py-6`}>No transactions yet.</p>}
         <ul className="m-0 list-none p-0">
-          {m.recent.map((t) => {
+          {m.recent.map((t, ri) => {
             const st = STATUS[t.status];
             return (
-              <li key={t.id}>
+              <li key={t.id} className="enter" style={stagger(ri + 6)}>
                 <Link
                   href={transactionsHref({ q: t.reference })}
                   data-testid="recent-row"

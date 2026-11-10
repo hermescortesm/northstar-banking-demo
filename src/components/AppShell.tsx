@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLedger } from "@/state/LedgerProvider";
+import { useFlash } from "@/lib/useFlash";
 import { formatCents } from "@/lib/money";
 import { transactionsHref } from "./overview/links";
 import { Icon } from "./icons";
@@ -25,8 +26,17 @@ function LogoMark() {
   );
 }
 
+function SidebarBalance({ cents }: { cents: number }) {
+  const n = useFlash(cents);
+  return (
+    <span key={n} className={`num font-medium text-text ${n ? "flash" : ""}`}>
+      {formatCents(cents)}
+    </span>
+  );
+}
+
 const ghostIconBtn =
-  "size-9 flex-none items-center justify-center cursor-pointer rounded-full border border-transparent bg-transparent text-text-2 hover:bg-hover hover:text-text";
+  "size-9 flex-none items-center justify-center cursor-pointer rounded-full border border-transparent bg-transparent text-text-2 transition-colors duration-150 hover:bg-hover hover:text-text";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -108,7 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           aria-label="Close navigation"
           tabIndex={-1}
           onClick={closeDrawer}
-          className="fixed inset-0 z-[45] cursor-pointer border-0 bg-scrim desktop:hidden"
+          className="animate-fade fixed inset-0 z-[45] cursor-pointer border-0 bg-scrim desktop:hidden"
         />
       )}
 
@@ -124,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           `tablet:fixed tablet:inset-y-0 tablet:left-0 tablet:!w-[284px] tablet:h-auto`,
           mobileOpen
             ? `tablet:visible tablet:translate-x-0 tablet:shadow-lg`
-            : `tablet:invisible tablet:-translate-x-full`,
+            : `tablet:invisible tablet:-translate-x-full tablet:transition-[width,transform,visibility]`,
         ].join(" ")}
       >
         <div
@@ -194,12 +204,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-current={active ? "page" : undefined}
                 onClick={closeDrawer}
                 className={[
-                  "flex h-9 items-center gap-3 whitespace-nowrap rounded-[9px] px-3 font-medium transition-colors",
+                  "relative flex h-9 items-center gap-3 whitespace-nowrap rounded-[9px] px-3 font-medium transition-[background-color,color,box-shadow] duration-200 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:origin-center before:rounded-full before:bg-accent-fill before:transition-transform before:duration-200",
                   `tablet:h-11`,
                   collapsed ? `justify-center px-0 tablet:justify-start tablet:px-3` : "",
                   active
-                    ? "bg-surface !text-text shadow-[0_1px_2px_rgba(10,12,16,.06),0_0_0_1px_var(--border)]"
-                    : "!text-text-2 hover:bg-hover hover:!text-text",
+                    ? "bg-surface !text-text shadow-[0_1px_2px_rgba(10,12,16,.06),0_0_0_1px_var(--border)] before:scale-y-100"
+                    : "!text-text-2 before:scale-y-0 hover:bg-hover hover:!text-text",
                 ].join(" ")}
               >
                 <Icon name={item.icon} />
@@ -219,10 +229,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={transactionsHref({ account: a.id })}
               onClick={closeDrawer}
               aria-label={`${a.shortName} ${formatCents(balances[a.id].postedCents)}, view ${a.name} transactions`}
-              className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] !text-text-2 hover:bg-hover hover:!text-text tablet:min-h-11"
+              className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] !text-text-2 transition-colors duration-150 hover:bg-hover hover:!text-text tablet:min-h-11"
             >
               <span className="truncate">{a.shortName}</span>
-              <span className="num font-medium text-text">{formatCents(balances[a.id].postedCents)}</span>
+              <SidebarBalance cents={balances[a.id].postedCents} />
             </Link>
           ))}
         </div>

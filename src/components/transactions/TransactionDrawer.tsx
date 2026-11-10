@@ -111,7 +111,7 @@ export function TransactionDrawer({
         aria-label="Close transaction details"
         tabIndex={-1}
         onClick={onClose}
-        className="fixed inset-0 z-[60] w-full cursor-pointer border-0 bg-scrim"
+        className="fixed inset-0 z-[60] w-full cursor-pointer border-0 bg-scrim animate-fade"
       />
       <aside
         ref={panelRef}
@@ -119,7 +119,7 @@ export function TransactionDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="dt-h"
-        className="fixed inset-y-0 right-0 z-[61] flex w-[min(480px,100vw)] flex-col border-l border-border bg-surface shadow-lg"
+        className="fixed inset-y-0 right-0 z-[61] flex w-[min(480px,100vw)] flex-col border-l border-border bg-surface shadow-lg animate-slide-in"
       >
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
           <span className="text-[13px] font-medium text-text-3">

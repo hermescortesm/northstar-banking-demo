@@ -1,5 +1,6 @@
 "use client";
 
+import { stagger } from "@/lib/motion";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { CATEGORIES, CATEGORY_NAMES } from "@/lib/data";
 import { formatDayShort } from "@/lib/dates";
@@ -8,14 +9,12 @@ import type { Transaction } from "@/lib/types";
 import { useLedger } from "@/state/LedgerProvider";
 import { TransactionDrawer } from "./TransactionDrawer";
 import { TxIcon } from "./TxIcon";
-import { accountLabel, CategoryTile, ghostBtn, outlineBtn, SimTag, STATUS_LABEL, StatusChip } from "./parts";
+import { accountLabel, CategoryTile, GRID, ghostBtn, outlineBtn, SimTag, STATUS_LABEL, StatusChip } from "./parts";
 import {
   activeFilterCount, amountBounds, EMPTY_FILTERS, filterTransactions, nextSort, pageCount, pageItems,
   PAGE_SIZE, sortTransactions, totalsOf, type Filters, type SortDir, type SortKey,
 } from "./filters";
 
-const GRID =
-  "grid items-center gap-4 px-5 grid-cols-[92px_minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)_116px_136px] max-[1180px]:grid-cols-[92px_minmax(0,1.7fr)_minmax(0,1fr)_116px_136px] max-[720px]:grid-cols-[minmax(0,1fr)_auto] max-[720px]:gap-3";
 const SELECT =
   "h-[38px] min-w-[130px] cursor-pointer appearance-none rounded-[10px] border border-border-strong bg-surface bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378849A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")] bg-[length:16px] bg-[right_10px_center] bg-no-repeat pl-3 pr-[34px] text-sm text-text outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-ring)] max-[720px]:h-11 max-[720px]:min-w-0 max-[720px]:flex-[1_1_140px]";
 const AMT_INPUT =
@@ -50,7 +49,7 @@ function Select({ id, label, value, onChange, children }: { id: string; label: s
   );
 }
 
-function Row({ t, accountText, onOpen }: { t: Transaction; accountText: string; onOpen: (t: Transaction, el: HTMLElement) => void }) {
+function Row({ t, i, accountText, onOpen }: { t: Transaction; i: number; accountText: string; onOpen: (t: Transaction, el: HTMLElement) => void }) {
   const incoming = t.amountCents > 0;
   const date = formatDayShort(t.day);
   const cat = CATEGORIES[t.category];
@@ -59,7 +58,8 @@ function Row({ t, accountText, onOpen }: { t: Transaction; accountText: string; 
       type="button"
       onClick={(e) => onOpen(t, e.currentTarget)}
       aria-label={`${t.merchant}, ${formatSignedCents(t.amountCents)}, ${STATUS_LABEL[t.status]}, ${date}`}
-      className={`${GRID} min-h-[62px] w-full cursor-pointer border-0 border-b border-border bg-transparent py-2.5 text-left transition-colors hover:bg-surface-2`}
+      style={stagger(i, 10)}
+      className={`enter ${GRID} min-h-[62px] w-full cursor-pointer border-0 border-b border-border bg-transparent py-2.5 text-left transition-colors duration-150 hover:bg-surface-2`}
     >
       <span className="text-[13px] text-text-2 max-[720px]:hidden">{date}</span>
       <span className="flex min-w-0 items-center gap-3">
@@ -216,9 +216,10 @@ export function TransactionsView({ initialFilters }: { initialFilters: Filters }
 
         {rows.length > 0 ? (
           <div>
-            {rows.map((t) => (
+            {rows.map((t, i) => (
               <Row
                 key={t.id}
+                i={i}
                 t={t}
                 accountText={accountLabel(accounts, t.accountId)}
                 onOpen={(tx, el) => { openerRef.current = el; setOpenId(tx.id); }}

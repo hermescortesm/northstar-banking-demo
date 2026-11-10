@@ -2,6 +2,10 @@ import { CATEGORIES } from "@/lib/data";
 import type { Account, Transaction } from "@/lib/types";
 import { TxIcon } from "./TxIcon";
 
+/** Table grid shared by the header, rows and the loading skeleton so they line up exactly. */
+export const GRID =
+  "grid items-center gap-4 px-5 grid-cols-[92px_minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)_116px_136px] max-[1180px]:grid-cols-[92px_minmax(0,1.7fr)_minmax(0,1fr)_116px_136px] max-[720px]:grid-cols-[minmax(0,1fr)_auto] max-[720px]:gap-3";
+
 export const STATUS_LABEL = { completed: "Completed", pending: "Pending", failed: "Failed" } as const;
 
 const CHIP: Record<Transaction["status"], string> = {

@@ -4,7 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Icon } from "./icons";
 
 export type ToastKind = "success" | "error";
-interface ToastItem { id: number; message: string; kind: ToastKind }
+interface ToastItem { id: number; message: string; kind: ToastKind; leaving?: boolean }
+
+const EXIT_MS = 200;
 
 export const TOAST_MS = 3800;
 export const TOAST_MAX = 3;
@@ -29,10 +31,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const toast = useCallback((message: string, kind: ToastKind = "success") => {
     const id = ++seq.current;
     setItems((cur) => [...cur, { id, message, kind }].slice(-TOAST_MAX));
+    // Exit animation (opacity/transform) plays during the last EXIT_MS; removal time is unchanged.
+    const leave = setTimeout(() => {
+      timers.current.delete(leave);
+      setItems((cur) => cur.map((i) => (i.id === id ? { ...i, leaving: true } : i)));
+    }, TOAST_MS - EXIT_MS);
     const t = setTimeout(() => {
       timers.current.delete(t);
       setItems((cur) => cur.filter((i) => i.id !== id));
     }, TOAST_MS);
+    timers.current.add(leave);
     timers.current.add(t);
   }, []);
 
@@ -51,7 +59,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             data-kind={t.kind}
-            className="animate-rise pointer-events-auto flex min-w-[260px] max-w-[400px] items-center gap-2.5 rounded-[14px] bg-[#0a0c10] py-3 pl-3 pr-3.5 text-[13px] font-medium text-white shadow-lg phone:min-w-0 phone:max-w-none"
+            className={`${t.leaving ? "animate-toast-out" : "animate-toast-in"} pointer-events-auto flex min-w-[260px] max-w-[400px] items-center gap-2.5 rounded-[14px] bg-[#0a0c10] py-3 pl-3 pr-3.5 text-[13px] font-medium text-white shadow-lg phone:min-w-0 phone:max-w-none`}
           >
             <span
               aria-hidden="true"
@@ -66,7 +74,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               type="button"
               aria-label="Dismiss notification"
               onClick={() => dismiss(t.id)}
-              className="-my-1.5 -mr-1.5 grid size-11 flex-none cursor-pointer place-items-center rounded-full border-0 bg-transparent text-white/70 hover:bg-white/10 hover:text-white not-phone:size-8"
+              className="-my-1.5 -mr-1.5 grid size-11 flex-none cursor-pointer place-items-center rounded-full border-0 bg-transparent text-white/70 transition-colors hover:bg-white/10 hover:text-white not-phone:size-8"
             >
               <Icon name="x" size={14} />
             </button>

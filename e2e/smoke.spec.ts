@@ -120,3 +120,14 @@ test("rendered text has no em or en dashes on any route", async ({ page }) => {
     expect(bad.test(text), `dash found on ${path}`).toBe(false);
   }
 });
+
+test.describe("loading UI", () => {
+  test.use({ javaScriptEnabled: false });
+  test("/transactions ships its skeleton in the first HTML (before any JS runs)", async ({ page }) => {
+    await page.goto("/transactions");
+    const sk = page.getByTestId("skeleton");
+    await expect(sk).toHaveAttribute("aria-busy", "true");
+    await expect(sk).toContainText("Loading transactions");
+    await expect(page.getByRole("heading", { level: 1, name: "Transactions" })).toBeVisible();
+  });
+});

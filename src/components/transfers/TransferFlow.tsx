@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useFlash } from "@/lib/useFlash";
 import { MEMO_MAX } from "@/lib/data";
 import { formatDayShort } from "@/lib/dates";
 import { SIM_CLOCK, validateTransfer } from "@/lib/ledger";
@@ -11,6 +12,7 @@ import {
 } from "@/lib/transfer-form";
 import type { Account, AccountId, TransferErrors, TransferInput } from "@/lib/types";
 import { useLedger } from "@/state/LedgerProvider";
+import { TransfersSkeleton } from "../skeletons/TransfersSkeleton";
 import { Icon } from "../icons";
 import { useToast } from "../Toast";
 import {
@@ -36,10 +38,10 @@ function Stepper({ step }: { step: Step }) {
         return (
           <li key={name} className="contents" aria-current={on ? "step" : undefined}>
             {i > 0 && <span aria-hidden="true" className="h-[1.5px] w-7 bg-border-strong" />}
-            <span className={`flex items-center gap-2 text-[13px] font-medium ${on ? "text-text" : "text-text-3"}`}>
+            <span className={`flex items-center gap-2 text-[13px] font-medium transition-colors duration-200 ${on ? "text-text" : "text-text-3"}`}>
               <span
                 aria-hidden="true"
-                className={`grid size-6 place-items-center rounded-full border-[1.5px] text-xs font-semibold ${
+                className={`grid size-6 place-items-center rounded-full border-[1.5px] text-xs font-semibold transition-[background-color,border-color,color] duration-200 ${
                   on
                     ? "border-text bg-text text-surface"
                     : done
@@ -85,7 +87,7 @@ function AccountOptions({
             type="button"
             aria-pressed={on}
             onClick={() => onPick(a.id)}
-            className={`flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-[border-color,box-shadow,background] ${
+            className={`flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-[border-color,box-shadow,background,transform] duration-150 hover:-translate-y-px ${
               on
                 ? "border-accent bg-accent-soft shadow-[0_0_0_3px_var(--accent-ring)]"
                 : "border-border-strong bg-surface hover:border-text-3"
@@ -127,6 +129,15 @@ function Section({ n, title, action, children }: { n: number; title: string; act
   );
 }
 
+function Posted({ cents }: { cents: number }) {
+  const n = useFlash(cents);
+  return (
+    <span key={n} data-role="posted" className={n ? "flash" : undefined}>
+      {formatCents(cents)}
+    </span>
+  );
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
@@ -137,7 +148,8 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function TransferFlow() {
+/** `loading` renders the matching skeleton instead (same layout, no data). */
+export function TransferFlow({ loading = false }: { loading?: boolean }) {
   const ledger = useLedger();
   const { accounts, balances, submitTransfer } = ledger;
   const { toast } = useToast();
@@ -241,6 +253,7 @@ export function TransferFlow() {
   const recent = ledger.transactions.filter((t) => t.category === "Transfer" && t.amountCents < 0).slice(0, 5);
   const acctName = (id: AccountId) => accounts.find((a) => a.id === id)?.shortName ?? id;
   const hasErr = Object.keys(errors).length > 0;
+  if (loading) return <TransfersSkeleton />;
   const inputBorder = (bad: boolean) => (bad ? "border-neg focus:!shadow-[0_0_0_3px_var(--neg-soft)]" : "border-border-strong");
 
   return (
@@ -258,7 +271,7 @@ export function TransferFlow() {
       <div className="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-5 max-[1180px]:grid-cols-[minmax(0,1fr)]">
         <div className="min-w-0">
           {step === "form" && (
-            <form className={card} aria-label="Transfer details" onSubmit={onReview} noValidate>
+            <form className={`${card} animate-step`} aria-label="Transfer details" onSubmit={onReview} noValidate>
               <Section n={1} title="From">
                 <AccountOptions
                   side="from"
@@ -373,7 +386,7 @@ export function TransferFlow() {
           )}
 
           {(step === "review" || step === "sending") && review && fromAcct && toAcct && (
-            <section className={card} aria-labelledby="rv-h">
+            <section className={`${card} animate-step`} aria-labelledby="rv-h">
               <div className={cardH}>
                 <h2 id="rv-h" ref={stepHeading} tabIndex={-1} className={`${cardTitle} outline-none`}>
                   Review and confirm
@@ -449,11 +462,11 @@ export function TransferFlow() {
           )}
 
           {step === "done" && result && (
-            <section className={card} aria-labelledby="done-h">
+            <section className={`${card} animate-step`} aria-labelledby="done-h">
               <div role="status" className="flex flex-col items-center gap-3.5 px-6 py-12 text-center">
-                <span aria-hidden="true" className="animate-rise grid size-16 place-items-center rounded-full bg-pos-soft text-pos">
+                <span aria-hidden="true" className="animate-pop grid size-16 place-items-center rounded-full bg-pos-soft text-pos">
                   <svg viewBox="0 0 24 24" width={30} height={30} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
+                    <path d="M20 6 9 17l-5-5" pathLength={1} className="draw-check" />
                   </svg>
                 </span>
                 <h2 id="done-h" ref={stepHeading} tabIndex={-1} className="text-[22px] font-semibold tracking-[-0.02em] outline-none">
@@ -483,7 +496,7 @@ export function TransferFlow() {
               <div key={a.id} className={kv} data-testid={`bal-${a.id}`}>
                 <span className="text-text-3">{acctLabel(a)}</span>
                 <span className="flex flex-col items-end gap-0.5 text-right font-medium tabular-nums">
-                  <span data-role="posted">{formatCents(balances[a.id].postedCents)}</span>
+                  <Posted cents={balances[a.id].postedCents} />
                   <small className="text-xs font-normal text-text-3">
                     {balances[a.id].pendingCents !== 0
                       ? `Available ${formatCents(balances[a.id].availableCents)}`

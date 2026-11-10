@@ -1,3 +1,4 @@
+import { animationsDone } from "./helpers";
 import { expect, test } from "@playwright/test";
 
 const cents = (s: string) => Math.round(parseFloat(s.replace(/[^0-9.]/g, "")) * 100);
@@ -72,6 +73,7 @@ for (const width of [1920, 1280, 768, 390, 375]) {
 test("touch targets are at least 44px tall at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/");
+  await animationsDone(page);
   for (const r of ["7D", "30D", "90D", "12M"]) {
     const box = await page.getByRole("button", { name: r, exact: true }).boundingBox();
     expect(box!.height).toBeGreaterThanOrEqual(44);

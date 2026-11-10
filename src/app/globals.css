@@ -97,18 +97,99 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* ---- Motion: CSS-only, transform/opacity, 150-600ms. Nothing here changes layout. ---- */
 @keyframes ns-rise {
-  from {
-    transform: translateY(8px);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
 }
-.animate-rise {
-  animation: ns-rise 0.22s ease;
+@keyframes ns-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ns-slide-in {
+  from { transform: translateX(32px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-step {
+  from { transform: translateX(12px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-toast-in {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-toast-out {
+  from { transform: none; opacity: 1; }
+  to { transform: translateY(8px); opacity: 0; }
+}
+@keyframes ns-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ns-flash {
+  from { opacity: 0.4; }
+  to { opacity: 0; }
+}
+@keyframes ns-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-rise { animation: ns-rise 0.22s ease; }
+.animate-fade { animation: ns-fade 0.2s ease-out; }
+.animate-step { animation: ns-step 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-pop { animation: ns-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.animate-slide-in { animation: ns-slide-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-toast-in { animation: ns-toast-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-toast-out { animation: ns-toast-out 0.2s ease-in forwards; }
+
+/* Entrance: fade-up, staggered by --i (40ms steps, capped in JS). `backwards` keeps the final state untransformed. */
+.enter {
+  animation: ns-rise 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+/* Success check: stroke draws in (pathLength=1 on the path). Static final state is the full check. */
+.draw-check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: ns-draw 0.4s ease-out 0.12s backwards;
+}
+
+/* Brief highlight on a changed amount: an overlay that fades out, so text contrast is untouched. */
+.flash {
+  position: relative;
+  isolation: isolate;
+}
+.flash::before {
+  content: "";
+  position: absolute;
+  inset: -2px -6px;
+  z-index: -1;
+  border-radius: 6px;
+  background: var(--accent-fill);
+  opacity: 0;
+  pointer-events: none;
+  animation: ns-flash 0.6s ease-out;
+}
+
+/* Skeletons: static tint with a shimmer sweep (transform only) */
+.sk {
+  position: relative;
+  overflow: hidden;
+  background: var(--hover);
+  border-radius: 8px;
+}
+.sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: ns-shimmer 1.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,5 +198,6 @@ a:hover {
   *::after {
     animation: none !important;
     transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
