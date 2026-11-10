@@ -36,6 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     timers.current.add(t);
   }, []);
 
+  const dismiss = useCallback((id: number) => setItems((cur) => cur.filter((i) => i.id !== id)), []);
   const value = useMemo(() => ({ toast }), [toast]);
 
   return (
@@ -43,12 +44,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed bottom-5 right-5 z-[90] flex max-w-[calc(100vw-40px)] flex-col gap-2 phone:inset-x-4 phone:bottom-4 phone:right-4 phone:max-w-none"
+        className="pointer-events-none fixed bottom-5 right-5 z-[90] flex max-w-[calc(100vw-40px)] flex-col gap-2 phone:inset-x-4 phone:bottom-auto phone:top-3 phone:right-4 phone:max-w-none"
       >
         {items.map((t) => (
           <div
             key={t.id}
-            role="status"
+            role={t.kind === "error" ? "alert" : "status"}
             data-kind={t.kind}
             className="animate-rise pointer-events-auto flex min-w-[260px] max-w-[400px] items-center gap-2.5 rounded-[14px] bg-[#0a0c10] py-3 pl-3 pr-3.5 text-[13px] font-medium text-white shadow-lg phone:min-w-0 phone:max-w-none"
           >
@@ -61,6 +62,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <Icon name={t.kind === "success" ? "check" : "alert"} size={14} />
             </span>
             <span className="flex-1">{t.message}</span>
+            <button
+              type="button"
+              aria-label="Dismiss notification"
+              onClick={() => dismiss(t.id)}
+              className="-my-1.5 -mr-1.5 grid size-11 flex-none cursor-pointer place-items-center rounded-full border-0 bg-transparent text-white/70 hover:bg-white/10 hover:text-white not-phone:size-8"
+            >
+              <Icon name="x" size={14} />
+            </button>
           </div>
         ))}
       </div>

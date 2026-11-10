@@ -11,6 +11,14 @@ export function makeRequestId(n: number): string {
   return "req_" + String(n).padStart(4, "0");
 }
 
+/**
+ * Key for the NEXT transfer, derived from the ledger so it is unique per attempt across page remounts.
+ * Retrying the same attempt (double click) sees the same ledger and therefore the same key.
+ */
+export function nextRequestId(appliedTransferCount: number): string {
+  return makeRequestId(appliedTransferCount + 1);
+}
+
 export function firstErrorField(errors: TransferErrors): TransferField | null {
   return FIELD_ORDER.find((f) => errors[f]) ?? null;
 }

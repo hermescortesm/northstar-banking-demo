@@ -7,7 +7,7 @@ import { formatDayShort } from "@/lib/dates";
 import { SIM_CLOCK, validateTransfer } from "@/lib/ledger";
 import { formatCents } from "@/lib/money";
 import {
-  fieldDomId, firstErrorField, formatAmountOnBlur, makeRequestId, memoCounter, reviewBalances, submitFailureMessage,
+  fieldDomId, firstErrorField, formatAmountOnBlur, memoCounter, nextRequestId, reviewBalances, submitFailureMessage,
 } from "@/lib/transfer-form";
 import type { Account, AccountId, TransferErrors, TransferInput } from "@/lib/types";
 import { useLedger } from "@/state/LedgerProvider";
@@ -152,7 +152,6 @@ export function TransferFlow() {
   const [result, setResult] = useState<DoneResult | null>(null);
 
   // Idempotency: one key per transfer attempt (reset by "New transfer"). Re-submitting it is a ledger no-op.
-  const [attemptNo, setAttemptNo] = useState(1);
   const sending = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stepHeading = useRef<HTMLHeadingElement>(null);
@@ -162,17 +161,16 @@ export function TransferFlow() {
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  // Move focus to the review/done heading when the step changes (design: data-stepfocus).
+  // Focus management: heading on Review/Done, amount field when returning to edit, heading again after a failed confirm.
   useEffect(() => {
-    if (step !== prevStep.current && (step === "review" || step === "done") && prevStep.current !== "sending") {
-      stepHeading.current?.focus();
-    } else if (step === "done") {
-      stepHeading.current?.focus();
-    }
+    const prev = prevStep.current;
     prevStep.current = step;
+    if (step === prev) return;
+    if (step === "review" || step === "done") stepHeading.current?.focus();
+    else if (step === "form" && prev === "review") document.getElementById("xf-amount")?.focus();
   }, [step]);
 
-  const input_: TransferInput = { requestId: makeRequestId(attemptNo), fromAccountId: from, toAccountId: to, amount, memo };
+  const input_: TransferInput = { requestId: nextRequestId(ledger.transfers.length), fromAccountId: from, toAccountId: to, amount, memo };
   const fromAcct = accounts.find((a) => a.id === from);
   const toAcct = accounts.find((a) => a.id === to);
 
@@ -203,11 +201,12 @@ export function TransferFlow() {
   const onConfirm = useCallback(() => {
     if (sending.current) return; // double-click / Enter twice
     sending.current = true;
+    const reqId = nextRequestId(ledger.transfers.length);
     setSubmitErr("");
     setStep("sending");
     timer.current = setTimeout(() => {
       timer.current = null;
-      const res = submitTransfer({ requestId: makeRequestId(attemptNo), fromAccountId: from, toAccountId: to, amount, memo });
+      const res = submitTransfer({ requestId: reqId, fromAccountId: from, toAccountId: to, amount, memo });
       sending.current = false;
       if (res.status === "invalid") {
         setSubmitErr(submitFailureMessage(res.errors));
@@ -222,10 +221,9 @@ export function TransferFlow() {
       setStep("done");
       if (res.status === "applied") toast(`Simulated transfer of ${formatCents(t.amountCents)} recorded`);
     }, SEND_MS);
-  }, [submitTransfer, attemptNo, from, to, amount, memo, accounts, toast]);
+  }, [submitTransfer, ledger.transfers.length, from, to, amount, memo, accounts, toast]);
 
   const reset = () => {
-    setAttemptNo((n) => n + 1);
     setFrom("op");
     setTo("rs");
     setAmount("");
@@ -519,10 +517,10 @@ export function TransferFlow() {
                 <Icon name="swap" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate font-medium">
-                  {t.merchant}
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span className="min-w-0 truncate">{t.merchant}</span>
                   {t.simulated && (
-                    <span className="ml-1.5 rounded-[5px] bg-warn-soft px-[5px] py-px text-[10px] font-semibold uppercase tracking-[.04em] text-warn">
+                    <span className="flex-none rounded-[5px] bg-warn-soft px-[5px] py-px text-[10px] font-semibold uppercase tracking-[.04em] text-warn">
                       Simulated
                     </span>
                   )}
