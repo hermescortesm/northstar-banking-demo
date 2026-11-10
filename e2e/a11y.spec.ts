@@ -27,9 +27,11 @@ function watchConsole(page: Page) {
   return bad;
 }
 
+for (const scheme of ["light", "dark"] as const) {
 for (const width of [1440, 390]) {
-  test.describe(`at ${width}px`, () => {
+  test.describe(`${scheme} theme at ${width}px`, () => {
     test.beforeEach(async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
       await page.setViewportSize({ width, height: 900 });
     });
 
@@ -88,6 +90,7 @@ for (const width of [1440, 390]) {
       expect(bad).toEqual([]);
     });
   });
+}
 }
 
 test("keyboard: skip link is first, visibly focused, and moves focus to main content", async ({ page }) => {

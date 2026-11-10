@@ -256,7 +256,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 trailing={<Kbd>Enter</Kbd>}
               />
             </form>
-            <div className="flex-1" />
+            <div className="flex-1 phone:hidden" />
             <Badge tone="warning" size="lg" outlined className="tablet:hidden">
               <Icon name="info" size={14} />
               {BADGE_TEXT}
