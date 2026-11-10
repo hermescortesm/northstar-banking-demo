@@ -89,11 +89,20 @@ for (const width of [1440, 390]) {
   });
 }
 
-test("keyboard: tab order starts with a skip/nav target and focus is visible on controls", async ({ page }) => {
+test("keyboard: skip link is first, visibly focused, and moves focus to main content", async ({ page }) => {
   await page.goto("/transactions");
   await page.keyboard.press("Tab");
-  const first = await page.evaluate(() => document.activeElement?.tagName);
-  expect(["A", "BUTTON"]).toContain(first);
-  const outline = await page.evaluate(() => { const s = getComputedStyle(document.activeElement!); return s.outlineStyle !== "none" || s.boxShadow !== "none"; });
-  expect(outline).toBe(true);
+  const skip = page.getByRole("link", { name: "Skip to main content" });
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeInViewport();
+  const ring = await skip.evaluate((e) => { const s = getComputedStyle(e); return s.outlineStyle !== "none" || s.boxShadow !== "none" || s.backgroundColor !== "rgba(0, 0, 0, 0)"; });
+  expect(ring).toBe(true);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#main$/);
+  expect(await page.evaluate(() => document.activeElement?.id === "main" || !!document.activeElement?.closest("main"))).toBe(true);
+  // next Tab lands on a control inside main, with a visible focus indicator
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => !!document.activeElement?.closest("main"))).toBe(true);
+  const vis = await page.evaluate(() => { const s = getComputedStyle(document.activeElement!); return s.outlineStyle !== "none" || s.boxShadow !== "none"; });
+  expect(vis).toBe(true);
 });

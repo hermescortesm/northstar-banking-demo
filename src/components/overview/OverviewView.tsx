@@ -129,7 +129,7 @@ export function OverviewView() {
                   type="button"
                   aria-pressed={range === r}
                   onClick={() => setRange(r)}
-                  className={`h-11 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-colors not-phone:h-7 ${
+                  className={`h-11 min-w-11 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-colors not-phone:h-7 not-phone:min-w-0 ${
                     range === r ? "bg-text text-surface" : "bg-transparent text-text-2 hover:text-text"
                   }`}
                 >

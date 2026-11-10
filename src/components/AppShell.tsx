@@ -134,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Link
             href="/"
-            className="flex items-center gap-2.5 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] !text-text"
+            className="flex min-h-11 items-center gap-2.5 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] !text-text"
           >
             <LogoMark />
             <span className={lbl}>Northstar</span>
@@ -289,7 +289,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 id="gsearch"
                 type="search"
                 autoComplete="off"
-                placeholder="Search transactions"
+                placeholder="Search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="h-11 w-full rounded-full border border-border bg-surface-2 pl-[38px] pr-3 text-sm outline-none transition-[border-color,box-shadow] focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-ring)] not-phone:h-[38px] not-phone:pr-14"
