@@ -22,10 +22,13 @@ export function SkeletonRegion({ label, children, className = "" }: { label: str
 
 const rowCls = "grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 border-t border-border px-5";
 
-/** Row skeleton shared by Accounts and Recent transactions lists (36px tile, two text lines, right-aligned amount). */
-export function ListRowSkeleton({ py = "py-3", round = false }: { py?: string; round?: boolean }) {
+/**
+ * Row skeleton shared by the Accounts and Recent transactions lists (36px tile, two text lines, right-aligned value).
+ * `h` fixes the row height (Tailwind classes) so the skeleton matches the real row it stands in for.
+ */
+export function ListRowSkeleton({ h = "h-[61px]", round = false }: { h?: string; round?: boolean }) {
   return (
-    <div className={`${rowCls} ${py}`}>
+    <div className={`${rowCls} ${h}`}>
       <Skeleton className={`size-9 ${round ? "!rounded-full" : "!rounded-[10px]"}`} />
       <span className="flex min-w-0 flex-col gap-1.5">
         <Skeleton className="h-3.5 w-[55%]" />

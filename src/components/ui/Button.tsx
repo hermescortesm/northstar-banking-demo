@@ -6,7 +6,7 @@ export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "dang
 export type ButtonSize = "md" | "sm";
 
 const BASE =
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border font-medium no-underline transition-[background,border-color,opacity,filter,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0";
+  "group inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border font-medium no-underline transition-[background,border-color,opacity,filter,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0";
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary: "border-text bg-text text-surface hover:opacity-90", // solid ink

@@ -6,9 +6,9 @@ import { cn } from "./cn";
  * otherwise the accent-soft look. Usage: <IconTile color="#3B5B8C"><Icon name="users" /></IconTile>
  */
 export function IconTile({
-  color, size = "md", bordered = false, className, children,
-}: { color?: string; size?: "sm" | "md" | "lg"; bordered?: boolean; className?: string; children: ReactNode }) {
-  const style: CSSProperties | undefined = color ? { color, background: `${color}21` } : undefined;
+  color, size = "md", bordered = false, pop = false, className, children,
+}: { color?: string; size?: "sm" | "md" | "lg"; bordered?: boolean; /** Subtle pop-in, staggered by the parent row's --i. */ pop?: boolean; className?: string; children: ReactNode }) {
+  const style: CSSProperties = { ...(color ? { color, background: `${color}21` } : null), ...(pop ? ({ "--pop-from": 0.8 } as CSSProperties) : null) };
   return (
     <span
       aria-hidden="true"
@@ -19,6 +19,7 @@ export function IconTile({
         size === "md" && "size-9 rounded-[10px]",
         size === "lg" && "size-12 rounded-[14px]",
         !color && (bordered ? "border border-border bg-surface-2 text-accent" : "bg-accent-soft text-accent"),
+        pop && "pop",
         className,
       )}
     >

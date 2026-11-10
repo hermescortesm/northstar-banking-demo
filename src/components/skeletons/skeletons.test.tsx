@@ -24,5 +24,5 @@ describe.each([
 
 it("renders 12 desktop/mobile rows by default in the transactions table", () => {
   const { container } = render(<TransactionsSkeleton />);
-  expect(container.querySelectorAll("section > div.min-h-\\[62px\\]").length).toBe(12);
+  expect(container.querySelectorAll("section > div.h-\\[62px\\]").length).toBe(12);
 });

@@ -12,8 +12,12 @@ describe("no em or en dashes in tracked files", () => {
   it("has none in the repo", () => {
     const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" })
       .split("\n")
-      .filter((f) => f && existsSync(f) && /\.(tsx?|mts|mjs|css|md|ya?ml|json)$/.test(f) && f !== "package-lock.json");
-    const hits = files.filter((f) => BAD.test(readFileSync(f, "utf8")));
+      .filter((f) => f && existsSync(f) && f !== "package-lock.json");
+    // every text file (txt, svg, html, json, css, md, yml, source ...); binaries are skipped by their NUL bytes
+    const hits = files.filter((f) => {
+      const buf = readFileSync(f);
+      return !buf.includes(0) && BAD.test(buf.toString("utf8"));
+    });
     expect(hits).toEqual([]);
   });
 });

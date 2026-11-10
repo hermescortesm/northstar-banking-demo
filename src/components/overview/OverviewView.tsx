@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Icon, isIconName } from "@/components/icons";
 import { OverviewSkeleton } from "@/components/skeletons/OverviewSkeleton";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -21,6 +21,7 @@ import { useFlash } from "@/lib/useFlash";
 import { useLedger } from "@/state/LedgerProvider";
 import type { RangeKey } from "@/lib/ledger";
 import { BalanceChart } from "./BalanceChart";
+import { Donut } from "./Donut";
 import { transactionsHref } from "./links";
 
 const rowSub = "block text-xs text-text-3";
@@ -142,6 +143,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
                 data-testid="account-card"
                 data-account={a.id}
                 data-cents={a.postedCents}
+                wrap
                 leading={<IconTile><Icon name={a.type === "Savings" ? "wallet" : "accounts"} /></IconTile>}
                 title={a.name}
                 subtitle={
@@ -193,29 +195,30 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
               key={range}
               role="img"
               aria-label={`Spending breakdown by category, ${m.categories.total} total`}
-              className="animate-pop relative size-[168px] rounded-full after:absolute after:inset-[22px] after:rounded-full after:bg-surface after:content-['']"
-              style={{ background: `conic-gradient(${m.categories.gradient})` }}
+              className="relative size-[168px]"
             >
-              <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center text-center">
+              <Donut rows={m.categories.rows} />
+              <div className="donut-center absolute inset-0 z-[1] flex flex-col items-center justify-center text-center">
                 <CardSub>Total spend</CardSub>
                 <strong className="num text-lg font-semibold tracking-[-0.02em]" data-testid="spend-total">{m.categories.total}</strong>
               </div>
             </div>
-            <div className="w-full min-w-0">
+            <div key={`rows-${range}`} className="w-full min-w-0">
               {m.categories.rows.length === 0 && <CardSub>No posted spending in this period.</CardSub>}
-              {m.categories.rows.map((c) => (
+              {m.categories.rows.map((c, i) => (
                 <Link
                   key={c.name}
                   data-testid="category-row"
                   href={transactionsHref(c.other ? { type: "out", range } : { category: c.name, range })}
-                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg py-[7px] text-[13px] text-text no-underline transition-transform duration-150 hover:translate-x-0.5 max-[720px]:min-h-11"
+                  style={stagger(i, 6)}
+                  className="enter group -mx-2 grid grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg px-2 py-[7px] text-[13px] text-text no-underline transition-[background-color,transform] duration-150 hover:bg-hover active:scale-[0.99] active:bg-accent-soft max-[720px]:min-h-11"
                 >
-                  <span className="flex min-w-0 items-center gap-2 group-hover:text-accent">
-                    <i className="inline-block size-2 flex-none rounded-[2px]" style={{ background: c.color }} />
+                  <span className="flex min-w-0 items-center gap-2 transition-colors group-hover:text-accent">
+                    <i className="pop inline-block size-2 flex-none rounded-[2px]" style={{ background: c.color, "--pop-from": 0 } as CSSProperties} />
                     <span className="truncate">{c.name}</span>
                   </span>
-                  <span className="num font-medium">{`$${Math.floor((c.cents + 50) / 100).toLocaleString("en-US")}`}</span>
-                  <span className="num text-right text-text-3">{c.percent.toFixed(0)}%</span>
+                  <span key={`a-${range}`} className="num animate-fade font-medium">{`$${Math.floor((c.cents + 50) / 100).toLocaleString("en-US")}`}</span>
+                  <span key={`p-${range}`} className="num animate-fade text-right text-text-3">{c.percent.toFixed(0)}%</span>
                 </Link>
               ))}
             </div>
@@ -228,18 +231,19 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
           <CardTitle id="rt-h">Recent transactions</CardTitle>
           <LinkButton href="/transactions" variant="ghost" size="sm" className="!h-11 !px-2 !text-xs not-phone:!h-7">
             View all
-            <Icon name="chevRight" size={14} />
+            <Icon name="chevRight" size={14} className="transition-transform duration-150 group-hover:translate-x-0.5" />
           </LinkButton>
         </CardHeader>
         {m.recent.length === 0 && <CardSub className="block border-t border-border px-5 py-6">No transactions yet.</CardSub>}
         <ul className="m-0 list-none p-0">
           {m.recent.map((t, i) => (
-            <li key={t.id} className="enter" style={stagger(i + 6)}>
+            <li key={t.id} className="enter" style={stagger(i, 5)}>
               <ListRow
                 href={transactionsHref({ q: t.reference })}
                 data-testid="recent-row"
+                chevron
                 leading={
-                  <IconTile color={t.categoryColor}>
+                  <IconTile color={t.categoryColor} pop>
                     <Icon name={isIconName(t.categoryIcon) ? t.categoryIcon : "swap"} />
                   </IconTile>
                 }
@@ -253,7 +257,7 @@ export function OverviewView({ loading = false }: { loading?: boolean }) {
                 trailing={
                   <>
                     <span className={`num font-medium ${t.incoming ? "text-pos" : ""}`}>{t.amount}</span>
-                    <Badge size="sm" tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status as keyof typeof STATUS_LABEL]}</Badge>
+                    <Badge size="sm" tone={STATUS_TONE[t.status]} className="pop">{STATUS_LABEL[t.status as keyof typeof STATUS_LABEL]}</Badge>
                   </>
                 }
               />

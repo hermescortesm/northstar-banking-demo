@@ -48,7 +48,7 @@ export function isIconName(name: string): name is IconName {
 }
 
 /** Inline stroke icon, decorative (aria-hidden). Usage: <Icon name="swap" size={16} /> */
-export function Icon({ name, size = 18, strokeWidth = 1.75 }: { name: IconName; size?: number; strokeWidth?: number }) {
+export function Icon({ name, size = 18, strokeWidth = 1.75, className = "" }: { name: IconName; size?: number; strokeWidth?: number; className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ export function Icon({ name, size = 18, strokeWidth = 1.75 }: { name: IconName; 
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="flex-none"
+      className={`flex-none ${className}`}
     >
       <path d={PATHS[name]} />
     </svg>

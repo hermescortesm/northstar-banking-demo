@@ -101,3 +101,12 @@ test("one border on focus: no outline, accent border, no gap (light and dark)", 
     expect(s.border).not.toBe("rgb(210, 214, 221)");
   }
 });
+
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+  test("a dark system preference still renders dark (pure CSS fallback)", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/transactions");
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(6, 7, 8)");
+  });
+});

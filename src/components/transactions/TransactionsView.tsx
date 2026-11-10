@@ -91,7 +91,7 @@ export function TransactionsView({ initialFilters }: { initialFilters: Filters }
         <div role="search" aria-label="Filter transactions" className="flex flex-wrap items-center gap-2.5 border-b border-border px-5 py-4 max-[720px]:px-4">
           <Field id="txq" label="Search by merchant, description or reference" hideLabel className="flex min-w-[260px] flex-[1_1_260px] flex-col max-[720px]:min-w-full">
             {(p) => (
-              <SearchInput {...p} placeholder="Search merchant, description or reference" value={filters.q} onChange={(e) => patch({ q: e.target.value })} />
+              <SearchInput {...p} placeholder="Search transactions" value={filters.q} onChange={(e) => patch({ q: e.target.value })} />
             )}
           </Field>
           <FilterSelect id="f-date" label="Date range" value={filters.range} onChange={(v) => patch({ range: v as Filters["range"] })}>

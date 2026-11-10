@@ -45,7 +45,7 @@ A Next `Link` with button styling. Same `variant` and `size` props plus all `Lin
 Used in: top bar, Overview hero, "View all" links, transfer success.
 
 ### IconButton (`IconButton.tsx`)
-Round ghost button with only an icon. `label` is required (becomes `aria-label`). Hide it with breakpoint variants (`desktop:hidden`), not `hidden`.
+Round ghost button with only an icon. `label` is required (becomes `aria-label`). Hide it with breakpoint variants (`desktop:hidden`), not `hidden`. Size: 44px on phones (the touch target requirement), 36px on larger screens, matching the compact icon buttons of the design's desktop top bar (so the theme toggle is 44px on mobile only).
 ```tsx
 <IconButton label="Close"><Icon name="x" /></IconButton>
 ```
@@ -121,11 +121,14 @@ Green up or red down change indicator. `<DeltaPill negative={false}>+2.4%</Delta
 ### Stat (`Stat.tsx`)
 Label, large value, note and optional colour dot. Used in: Overview KPI strip.
 
+### Donut (`overview/Donut.tsx`)
+The spending ring as SVG arcs. Each arc draws in after the previous one (`.donut-arc`); the center total fades in. Used in: Overview spending card.
+
 ### IconTile (`IconTile.tsx`)
 Square icon holder. With `color` it is that colour on a 13% tint, otherwise accent-soft. Sizes `sm / md / lg`. Used in: category tiles, account rows, insights, recent rows.
 
 ### ListRow (`ListRow.tsx`)
-Leading tile, two text lines, right-aligned value; a link when `href` is set. Used in: Overview accounts and recent transactions, Transfers recent list.
+Leading tile, two text lines, right-aligned value; a link when `href` is set. `wrap` lets the text wrap instead of truncating (Overview accounts, so names and "APY (simulated)" are never cut), `chevron` adds a trailing chevron that nudges on hover. Used in: Overview accounts and recent transactions, Transfers recent list.
 
 ### KeyValueList, KeyValueRow (`KeyValue.tsx`)
 Definition list rows (label left, value right, optional caption). Used in: drawer details, transfer review, balances panel.
@@ -140,7 +143,11 @@ Icon, title, text and an optional action. Used in: Transactions with no matches.
 Previous, numbered, next buttons from `pageItems()`. Used in: Transactions.
 
 ### Skeleton, SkeletonRegion, ListRowSkeleton (`Skeleton.tsx`)
-`Skeleton` is a shimmering block (decorative). `SkeletonRegion` wraps a loading layout as `role="status"` with `aria-busy` and a screen reader "Loading ..." label. Screen skeletons live in `components/skeletons/`.
+`Skeleton` is a shimmering block (decorative). `SkeletonRegion` wraps a loading layout as `role="status"` with `aria-busy` and a screen reader "Loading ..." label. Screen skeletons live in `components/skeletons/`; their block heights were measured from the real screens (1440, 1280, 768, 390, 375) so swapping in the real UI shifts the layout by at most a few pixels at the common widths.
+
+Where they are reachable:
+- **Transactions**: real. It is the Suspense fallback of the page (the page reads the URL on the client), so the skeleton is in the first HTML.
+- **Overview and Transfers**: not mounted by the app. `OverviewView` and `TransferFlow` accept `loading` and render their skeleton, and the skeletons are unit tested. They are deliberately not behind `loading.tsx` or Suspense: those pages are static and large, so React would put the skeleton in the first HTML and reveal the content with a script, which hurts first paint. Wire them only if data becomes asynchronous.
 ```tsx
 <SkeletonRegion label="accounts"><Skeleton className="h-4 w-24" /></SkeletonRegion>
 ```
@@ -162,4 +169,4 @@ Sun/moon button. Hydration safe, follows system changes until the user chooses. 
 
 ## Motion
 
-All motion is CSS (`globals.css`): `.enter` fade-up with `--i` stagger (`stagger()` in `lib/motion.ts`), `.animate-*` utilities, skeleton shimmer, success check draw, change flash (`useFlash`). `prefers-reduced-motion: reduce` turns all of it off.
+All motion is CSS except the Overview area chart, which uses recharts' built-in 500ms animation (turned off for reduced motion). In `globals.css`: `.enter` fade-up with `--i` stagger (`stagger()` in `lib/motion.ts`), `.animate-*` utilities, skeleton shimmer, success check draw, change flash (`useFlash`), `.pop` (staggered pop-in for icon tiles, colour squares and pills), `.donut-arc` / `.donut-center`. The Spending and Recent cards use them: arcs draw in, rows stagger, hover highlights and chevron nudges, amounts crossfade on range change. `prefers-reduced-motion: reduce` turns all of it off.
