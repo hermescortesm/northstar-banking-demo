@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useLedger } from "@/state/LedgerProvider";
+import { formatCents } from "@/lib/money";
+import { transactionsHref } from "./overview/links";
 import { Icon } from "./icons";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
@@ -27,6 +30,7 @@ const ghostIconBtn =
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { accounts, balances } = useLedger();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -204,6 +208,24 @@ export function AppShell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
+
+        <div className={`flex-col gap-px ${collapsed ? "hidden tablet:flex" : "flex"}`}>
+          <div className="px-3 pb-1.5 pt-[18px] text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
+            Accounts
+          </div>
+          {accounts.map((a) => (
+            <Link
+              key={a.id}
+              href={transactionsHref({ account: a.id })}
+              onClick={closeDrawer}
+              aria-label={`View ${a.name} transactions`}
+              className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] !text-text-2 hover:bg-hover hover:!text-text tablet:min-h-11"
+            >
+              <span className="truncate">{a.shortName}</span>
+              <span className="num font-medium text-text">{formatCents(balances[a.id].postedCents)}</span>
+            </Link>
+          ))}
+        </div>
 
         <div className="mt-auto flex flex-col gap-2.5">
           <div
