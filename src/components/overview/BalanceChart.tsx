@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
+import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 import { formatCents, formatCompactCents } from "@/lib/money";
 import { balanceScale, xTickLabels } from "@/lib/overview";
 import type { CashFlowPoint } from "@/lib/ledger";
@@ -13,7 +14,7 @@ function ChartTooltip({ active, payload }: TooltipContentProps) {
   const row = "flex justify-between gap-4 py-px tabular-nums";
   const lbl = "flex items-center gap-1.5 opacity-70";
   return (
-    <div className="min-w-[168px] rounded-xl bg-[#0a0c10] px-3 py-2.5 text-xs text-white shadow-[var(--shadow-md)]">
+    <div className="min-w-[168px] rounded-xl border border-tip-bd bg-tip-bg px-3 py-2.5 text-xs text-tip-fg shadow-md">
       <div className="mb-1.5 font-semibold opacity-80">{p.long}</div>
       <div className={row}>
         <span className={lbl}>Ending balance</span>
@@ -38,6 +39,7 @@ function ChartTooltip({ active, payload }: TooltipContentProps) {
 }
 
 export function BalanceChart({ points, summary }: { points: readonly CashFlowPoint[]; summary: string }) {
+  const reduced = usePrefersReducedMotion();
   const scale = balanceScale(points.map((p) => p.balanceCents));
   const xTicks = xTickLabels(points);
   const tick = { fontSize: 11, fill: "var(--text-3)" };
@@ -111,7 +113,9 @@ export function BalanceChart({ points, summary }: { points: readonly CashFlowPoi
               strokeLinejoin="round"
               strokeLinecap="round"
               fill="url(#g-ov)"
-              isAnimationActive={false}
+              isAnimationActive={!reduced}
+              animationDuration={500}
+              animationEasing="ease-out"
               activeDot={{ r: 6, fill: "var(--surface)", stroke: LINE, strokeWidth: 2.5 }}
               dot={false}
             />

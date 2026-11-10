@@ -1,3 +1,4 @@
+import { animationsDone } from "./helpers";
 import { expect, test, type Page } from "@playwright/test";
 
 const WIDTHS = [1920, 1440, 1280, 768, 390, 375];
@@ -6,6 +7,7 @@ const ROUTES = ["/", "/transactions", "/transfers"];
 async function settle(page: Page, route: string) {
   await page.goto(route);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await animationsDone(page);
 }
 
 for (const width of WIDTHS) {

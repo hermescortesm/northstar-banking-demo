@@ -7,11 +7,16 @@ Northstar is a front-end demo of a business banking app: an overview dashboard, 
 - **Overview** - total cash, per-account balances, range-switchable balance chart (7D / 30D / 90D / 12M) with a screen-reader table, money in / out / net, spending by category, recent transactions. Cards and category rows link to pre-filtered Transactions.
 - **Transactions** - search, date range, direction, category, status, account and amount filters; sortable columns; 12 per page; detail drawer with timeline (focus-trapped, Escape to close, background inert).
 - **Transfers** - 3-step flow (details, review, confirm) between your own accounts with validation (no overdraft, same-account blocked, amount parsing), idempotent submit and a visible "simulated" label. A transfer creates a debit and a credit row (reference `SIM-####`) that appear everywhere immediately.
+- Light and dark themes (system default, toggle in the top bar, saved in the browser), CSS-only motion that respects reduced-motion, loading skeletons.
 - Responsive from 1920px down to 375px; collapsible sidebar on desktop, drawer navigation on mobile.
 
 ## Tech stack
 
 Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Recharts 3. Tests: Vitest + Testing Library (unit), Playwright + `@axe-core/playwright` (e2e, accessibility). Node 24.
+
+## Components
+
+The UI is built from small reusable primitives in `src/components/ui/`. See [docs/COMPONENTS.md](docs/COMPONENTS.md) for each component, its props and where it is used.
 
 ## Architecture
 

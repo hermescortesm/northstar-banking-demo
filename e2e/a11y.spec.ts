@@ -1,3 +1,4 @@
+import { animationsDone } from "./helpers";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -5,7 +6,7 @@ const rows = (page: Page) => page.getByRole("button", { name: /, [+−]\$[\d,.]+
 
 async function axe(page: Page) {
   // colour transitions in flight would be measured mid-fade by the contrast rule
-  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
+  await animationsDone(page); // finite animations only: shimmer/spinner loop forever
   const r = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     // Known, documented exception (README: known limitations): transaction table rows carry a concise
@@ -26,9 +27,11 @@ function watchConsole(page: Page) {
   return bad;
 }
 
+for (const scheme of ["light", "dark"] as const) {
 for (const width of [1440, 390]) {
-  test.describe(`at ${width}px`, () => {
+  test.describe(`${scheme} theme at ${width}px`, () => {
     test.beforeEach(async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
       await page.setViewportSize({ width, height: 900 });
     });
 
@@ -87,6 +90,7 @@ for (const width of [1440, 390]) {
       expect(bad).toEqual([]);
     });
   });
+}
 }
 
 test("keyboard: skip link is first, visibly focused, and moves focus to main content", async ({ page }) => {

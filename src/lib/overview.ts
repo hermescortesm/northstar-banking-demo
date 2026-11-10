@@ -186,7 +186,7 @@ export function buildOverview(
   return {
     range,
     rangeLabel: RANGE_LABEL[range],
-    rangeDates: `${formatDayShort(stats.startDay)} – ${formatDayWithYear(stats.endDay)}`,
+    rangeDates: `${formatDayShort(stats.startDay)} - ${formatDayWithYear(stats.endDay)}`,
     total: {
       posted: formatCents(totals.postedCents),
       dollars: split.dollars,

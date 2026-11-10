@@ -6,37 +6,62 @@
 @custom-variant phone (@media (max-width: 720px));
 @custom-variant not-phone (@media (min-width: 721px));
 
-/* Design tokens: design-reference/project/Main.dc.html (light theme) */
 :root {
-  --bg: #edeff2;
-  --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --hover: #f1f3f5;
-  --border: #e5e7eb;
-  --border-strong: #d2d6dd;
-  --text: #0a0c10;
-  --text-2: #3b4250;
-  --text-3: #5f6676;
-  --accent: #067a57;
-  --accent-hi: #04664a;
-  --accent-fill: #17c38f;
+  /*
+   * Design tokens: design-reference/project/Main.dc.html. Every colour is light-dark(light, dark), so ONE block
+   * serves both themes. `color-scheme` picks the side: the system preference by default, or the explicit
+   * choice stored in data-theme (set before first paint by THEME_INIT_SCRIPT). It also works without JavaScript.
+   */
+  color-scheme: light dark;
+  --bg: light-dark(#edeff2, #060708);
+  --surface: light-dark(#ffffff, #0e0f12);
+  --surface-2: light-dark(#f7f8fa, #131519);
+  --hover: light-dark(#f1f3f5, #181a1f);
+  --border: light-dark(#e5e7eb, #1f2227);
+  --border-strong: light-dark(#d2d6dd, #2c3038);
+  --text: light-dark(#0a0c10, #f3f5f8);
+  --text-2: light-dark(#3b4250, #b3bac6);
+  --text-3: light-dark(#5f6676, #8a92a0);
+  --accent: light-dark(#067a57, #3ddba4);
+  --accent-hi: light-dark(#04664a, #6be7bc);
+  --accent-fill: light-dark(#17c38f, #3ddba4);
   --accent-ink: #03241a;
-  --accent-soft: #e7f8f1;
-  --accent-ring: rgba(23, 195, 143, 0.28);
-  --pos: #067a57;
-  --pos-soft: #e7f8f1;
-  --neg: #c2261b;
-  --neg-soft: #fdecea;
-  --warn: #9a5800;
-  --warn-soft: #fff4e0;
-  --info: #2851c7;
-  --info-soft: #eaf0fd;
-  --chart-line: #13b585;
-  --chart-out: #cbd0d8;
-  --shadow-sm: 0 1px 2px rgba(10, 12, 16, 0.04);
-  --shadow-md: 0 6px 20px rgba(10, 12, 16, 0.08);
-  --shadow-lg: 0 24px 64px rgba(10, 12, 16, 0.18), 0 2px 8px rgba(10, 12, 16, 0.06);
-  --scrim: rgba(10, 12, 16, 0.38);
+  --accent-soft: light-dark(#e7f8f1, rgba(61, 219, 164, 0.1));
+  --accent-ring: light-dark(rgba(23, 195, 143, 0.28), rgba(61, 219, 164, 0.25));
+  --pos: light-dark(#067a57, #3ddba4);
+  --pos-soft: light-dark(#e7f8f1, rgba(61, 219, 164, 0.1));
+  --neg: light-dark(#c2261b, #ff7a6e);
+  --neg-soft: light-dark(#fdecea, rgba(255, 122, 110, 0.1));
+  --warn: light-dark(#9a5800, #f5b85b);
+  --warn-soft: light-dark(#fff4e0, rgba(245, 184, 91, 0.1));
+  --info: light-dark(#2851c7, #8eb1ff);
+  --info-soft: light-dark(#eaf0fd, rgba(142, 177, 255, 0.1));
+  --chart-line: light-dark(#13b585, #3ddba4);
+  --chart-out: light-dark(#cbd0d8, #3a3f48);
+  --shadow-sm: 0 1px 2px light-dark(rgba(10, 12, 16, 0.04), transparent);
+  --shadow-md: 0 6px 20px light-dark(rgba(10, 12, 16, 0.08), rgba(0, 0, 0, 0.5));
+  --shadow-lg: 0 24px 64px light-dark(rgba(10, 12, 16, 0.18), rgba(0, 0, 0, 0.7)), 0 2px 8px light-dark(rgba(10, 12, 16, 0.06), transparent);
+  --scrim: light-dark(rgba(10, 12, 16, 0.38), rgba(0, 0, 0, 0.6));
+  --side: light-dark(#edeff2, #060708);
+  --nav-on: light-dark(#ffffff, #16181c);
+  --tip-bg: light-dark(#0a0c10, #1a1c21);
+  --tip-fg: light-dark(#ffffff, #f3f5f8);
+  --tip-bd: light-dark(transparent, #2c3038);
+  --tip-ok: #3fcf97;
+  --tip-err: #ff7a6e;
+  --on-accent: light-dark(#ffffff, #03241a);
+  --avatar: light-dark(#e1e4e9, #1e2127);
+  --avatar-ink: light-dark(#2b3240, #d6dbe3);
+  --mark-from: light-dark(#1fd39c, #3ddba4);
+  --mark-to: light-dark(#07805c, #0b8f66);
+  --mark-ink: light-dark(#ffffff, #03241a);
+  --sk-shine: light-dark(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.06));
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -64,6 +89,18 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-scrim: var(--scrim);
+  --color-side: var(--side);
+  --color-nav-on: var(--nav-on);
+  --color-tip-bg: var(--tip-bg);
+  --color-tip-fg: var(--tip-fg);
+  --color-tip-bd: var(--tip-bd);
+  --color-tip-ok: var(--tip-ok);
+  --color-tip-err: var(--tip-err);
+  --color-on-accent: var(--on-accent);
+  --color-avatar: var(--avatar);
+  --color-avatar-ink: var(--avatar-ink);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
   --radius-card: 16px;
   --radius-panel: 20px;
   --shadow-lg: var(--shadow-lg);
@@ -80,11 +117,14 @@ body {
   letter-spacing: -0.005em;
 }
 
-a {
-  color: var(--accent);
-}
-a:hover {
-  color: var(--accent-hi);
+/* Base link colours live in the base layer so any text-* utility on a link wins without !important. */
+@layer base {
+  a {
+    color: var(--accent);
+  }
+  a:hover {
+    color: var(--accent-hi);
+  }
 }
 
 /* Tabular numerals for money */
@@ -97,18 +137,158 @@ a:hover {
   outline-offset: 2px;
 }
 
-@keyframes ns-rise {
-  from {
-    transform: translateY(8px);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
+/*
+ * Form fields show ONE border: no outline, the field's own border turns accent, thickened by a 1px inset
+ * line that hugs it (no gap, no outer ring). Applies to :focus too so mouse focus in text inputs looks the same.
+ */
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--neg);
+}
+.field[aria-invalid="true"]:focus,
+.field[aria-invalid="true"]:focus-visible {
+  border-color: var(--neg);
+  box-shadow: inset 0 0 0 1px var(--neg);
+}
+/* Native select chevron (a class, not a Tailwind arbitrary value: the data URI contains spaces) */
+.select-chevron {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378849A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+.field {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Theme switch: colours ease for a moment, only while html.theme-anim is set (never on first paint). */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-anim,
+  html.theme-anim *,
+  html.theme-anim *::before,
+  html.theme-anim *::after {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, fill 0.2s ease, stroke 0.2s ease !important;
   }
 }
-.animate-rise {
-  animation: ns-rise 0.22s ease;
+
+/* ---- Motion: CSS-only, transform/opacity, 150-600ms. Nothing here changes layout. ---- */
+@keyframes ns-rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ns-slide-in {
+  from { transform: translateX(32px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-step {
+  from { transform: translateX(12px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-pop {
+  from { transform: scale(var(--pop-from, 0.9)); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-toast-in {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes ns-toast-out {
+  from { transform: none; opacity: 1; }
+  to { transform: translateY(8px); opacity: 0; }
+}
+@keyframes ns-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ns-flash {
+  from { opacity: 0.4; }
+  to { opacity: 0; }
+}
+@keyframes ns-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-rise { animation: ns-rise 0.22s ease; }
+.animate-fade { animation: ns-fade 0.2s ease-out; }
+.animate-step { animation: ns-step 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-pop { animation: ns-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.animate-slide-in { animation: ns-slide-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-toast-in { animation: ns-toast-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-toast-out { animation: ns-toast-out 0.2s ease-in forwards; }
+
+/* Entrance: fade-up, staggered by --i (40ms steps, capped in JS). `backwards` keeps the final state untransformed. */
+.enter {
+  animation: ns-rise 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+/* Pop-in for small marks (icon tiles, colour squares, pills), staggered by the row's --i. */
+.pop {
+  animation: ns-pop 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms + 120ms);
+}
+
+/* Donut: each segment's arc draws in (SVG stroke-dasharray, pathLength=100), one after another via --i. */
+@keyframes ns-arc {
+  from { stroke-dasharray: 0 100; }
+  to { stroke-dasharray: var(--len) 100; }
+}
+.donut-arc {
+  stroke-dasharray: var(--len) 100;
+  animation: ns-arc 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.donut-center {
+  animation: ns-fade 0.4s ease-out 0.35s backwards;
+}
+
+/* Success check: stroke draws in (pathLength=1 on the path). Static final state is the full check. */
+.draw-check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: ns-draw 0.4s ease-out 0.12s backwards;
+}
+
+/* Brief highlight on a changed amount: an overlay that fades out, so text contrast is untouched. */
+.flash {
+  position: relative;
+  isolation: isolate;
+}
+.flash::before {
+  content: "";
+  position: absolute;
+  inset: -2px -6px;
+  z-index: -1;
+  border-radius: 6px;
+  background: var(--accent-fill);
+  opacity: 0;
+  pointer-events: none;
+  animation: ns-flash 0.6s ease-out;
+}
+
+/* Skeletons: static tint with a shimmer sweep (transform only) */
+.sk {
+  position: relative;
+  overflow: hidden;
+  background: var(--hover);
+  border-radius: 8px;
+}
+.sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--sk-shine), transparent);
+  animation: ns-shimmer 1.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,5 +297,6 @@ a:hover {
   *::after {
     animation: none !important;
     transition: none !important;
+    scroll-behavior: auto !important;
   }
 }

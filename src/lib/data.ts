@@ -112,7 +112,7 @@ function buildRaw(rnd: () => number): Raw[] {
     for (const [d0, back] of [[1, false], [15, true]] as const) {
       const n = bizDay(y, m, d0, back);
       const amt = rc(8600000 + i * 115000, 8790000 + i * 115000);
-      const per = d0 === 1 ? `Pay period ${MONTHS_SHORT[prevM - 1]} 16–${prevDim}` : `Pay period ${MONTHS_SHORT[m - 1]} 1–15`;
+      const per = d0 === 1 ? `Pay period ${MONTHS_SHORT[prevM - 1]} 16-${prevDim}` : `Pay period ${MONTHS_SHORT[m - 1]} 1-15`;
       add(n, "Transfer to Payroll ••1956", `Payroll funding · ${per}`, "Transfer", -amt, "op", "Internal transfer");
       add(n, "Transfer from Operating ••4821", `Payroll funding · ${per}`, "Transfer", amt, "pr", "Internal transfer");
       add(n, "Gusto", `Payroll · ${per}`, "Payroll", -amt, "pr", "ACH");
@@ -169,7 +169,7 @@ function buildRaw(rnd: () => number): Raw[] {
   add(toDayNumber("2026-11-06"), "Google Ads", "Search campaigns · warehouse automation", "Marketing", -438000, "op", "Card", {
     card: "c4",
     status: "failed",
-    reason: "Declined — this card was frozen on Nov 4.",
+    reason: "Declined: this card was frozen on Nov 4.",
   });
   add(TODAY, "Stripe", `Payout · po_${po++} · arrives Nov 10`, "Revenue", 4621840, "op", "ACH", { payout: true });
   return raw;

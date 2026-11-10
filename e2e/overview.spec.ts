@@ -1,3 +1,4 @@
+import { animationsDone } from "./helpers";
 import { expect, test } from "@playwright/test";
 
 const cents = (s: string) => Math.round(parseFloat(s.replace(/[^0-9.]/g, "")) * 100);
@@ -72,6 +73,7 @@ for (const width of [1920, 1280, 768, 390, 375]) {
 test("touch targets are at least 44px tall at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/");
+  await animationsDone(page);
   for (const r of ["7D", "30D", "90D", "12M"]) {
     const box = await page.getByRole("button", { name: r, exact: true }).boundingBox();
     expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -81,4 +83,49 @@ test("touch targets are at least 44px tall at 390px", async ({ page }) => {
   }
   const box = await page.getByRole("link", { name: "View all" }).boundingBox();
   expect(box!.height).toBeGreaterThanOrEqual(44);
+});
+
+test("Accounts card never truncates names or the APY disclosure (all widths)", async ({ page }) => {
+  for (const width of [1440, 1280, 768, 390, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const cards = page.getByTestId("account-card");
+    await expect(cards).toHaveCount(3);
+    await expect(cards.filter({ hasText: "Operating Checking" })).toHaveCount(1);
+    await expect(cards.filter({ hasText: "4.05% APY (simulated)" })).toHaveCount(1);
+    const clipped = await cards.evaluateAll((els) =>
+      els.flatMap((el) => Array.from(el.querySelectorAll<HTMLElement>("span")).filter((s) => getComputedStyle(s).textOverflow === "ellipsis" || s.scrollWidth > s.clientWidth + 1).map((s) => s.textContent)),
+    );
+    expect(clipped, `clipped at ${width}`).toEqual([]);
+  }
+});
+
+test("spending donut draws one arc per category and the rows are interactive", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const rows = page.getByTestId("category-row");
+  const n = await rows.count();
+  expect(n).toBeGreaterThan(2);
+  await expect(page.locator("[aria-label^='Spending breakdown'] circle.donut-arc")).toHaveCount(n);
+  await expect(page.getByTestId("spend-total")).toBeVisible();
+  await animationsDone(page);
+  const before = await rows.first().evaluate((e) => getComputedStyle(e).backgroundColor);
+  await rows.first().hover();
+  await animationsDone(page);
+  const after = await rows.first().evaluate((e) => getComputedStyle(e).backgroundColor);
+  expect(after).not.toBe(before);
+  // recent rows carry a chevron
+  await expect(page.getByTestId("recent-row").first().locator("svg").last()).toBeVisible();
+  // range change re-renders amounts without layout overflow
+  await page.getByRole("button", { name: "90D", exact: true }).click();
+  await expect(page.locator("[aria-label^='Spending breakdown'] circle.donut-arc")).not.toHaveCount(0);
+});
+
+test("reduced motion: nothing animates on the Overview", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByTestId("hero-total")).toBeVisible();
+  await page.getByRole("button", { name: "90D", exact: true }).click();
+  const running = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length);
+  expect(running).toBe(0);
 });

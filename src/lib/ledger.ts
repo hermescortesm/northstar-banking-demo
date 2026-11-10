@@ -92,7 +92,7 @@ export function weekBuckets(count: number, endDay: number = TODAY): Bucket[] {
   for (let k = count - 1; k >= 0; k--) {
     const e = endDay - k * 7;
     const s = e - 6;
-    b.push({ startDay: s, endDay: e, short: formatDayShort(s), long: `${formatDayShort(s)} – ${formatDayShort(e)}` });
+    b.push({ startDay: s, endDay: e, short: formatDayShort(s), long: `${formatDayShort(s)} - ${formatDayShort(e)}` });
   }
   return b;
 }
