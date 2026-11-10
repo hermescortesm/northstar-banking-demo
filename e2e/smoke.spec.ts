@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  { path: "/", label: "Overview" },
-  { path: "/transactions", label: "Transactions" },
-  { path: "/transfers", label: "Transfers" },
+  { path: "/", label: "Overview", h1: "Good morning, Avery" },
+  { path: "/transactions", label: "Transactions", h1: "Transactions" },
+  { path: "/transfers", label: "Transfers", h1: "Transfers" },
 ];
 const BADGE = "Simulated demo — no real funds";
 
@@ -13,10 +13,10 @@ test("desktop: sidebar nav reaches each route", async ({ page }) => {
   const nav = page.getByRole("navigation", { name: "Main", exact: true });
   await expect(page.getByText(BADGE).locator("visible=true")).toBeVisible();
   await expect(page.getByRole("link", { name: "Northstar" })).toBeVisible();
-  for (const { path, label } of routes) {
+  for (const { path, label, h1 } of routes) {
     await nav.getByRole("link", { name: label }).click();
     await expect(page).toHaveURL(path);
-    await expect(page.getByRole("heading", { level: 1, name: label })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: h1 })).toBeVisible();
     await expect(nav.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
   }
 });
@@ -24,11 +24,11 @@ test("desktop: sidebar nav reaches each route", async ({ page }) => {
 test("mobile 375px: off-canvas nav, badge, no horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 700 });
   const nav = page.getByRole("navigation", { name: "Main", exact: true });
-  for (const { path, label } of routes) {
+  for (const { path, h1 } of routes) {
     await page.goto(path);
     await expect(nav).toBeHidden();
     await expect(page.getByText(BADGE).locator("visible=true")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: label })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: h1 })).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
@@ -104,7 +104,7 @@ test("breakpoints are inclusive like the design (<=980 drawer, <=720 icon-only T
   await expect(opener).toBeVisible();
   await page.setViewportSize({ width: 981, height: 800 });
   await expect(opener).toBeHidden();
-  const label = page.getByRole("link", { name: "Transfer" }).getByText("Transfer");
+  const label = page.getByRole("link", { name: "Transfer", exact: true }).getByText("Transfer");
   await page.setViewportSize({ width: 720, height: 800 });
   await expect(label).toBeHidden();
   await page.setViewportSize({ width: 721, height: 800 });
