@@ -17,6 +17,7 @@ export { ListRow } from "./ListRow";
 export { Money } from "./Money";
 export { Notice } from "./Notice";
 export { Pagination, type PageItem } from "./Pagination";
+export { Reveal, useReveal, type RevealState } from "./Reveal";
 export { SegmentedControl } from "./SegmentedControl";
 export { Select } from "./Select";
 export { ListRowSkeleton, Skeleton, SkeletonRegion } from "./Skeleton";
