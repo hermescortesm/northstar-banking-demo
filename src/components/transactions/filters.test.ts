@@ -83,7 +83,7 @@ describe("sort, count, totals, paging", () => {
 describe("filtersFromParams", () => {
   const valid = { accounts: ["op", "pr", "rs"], categories: ["Rent", "Transfer"] };
   it("reads known params and drops invalid values", () => {
-    const p = new URLSearchParams("q=%20aws%20&account=pr&category=Rent&direction=out&status=pending&range=30D&min=5");
+    const p = new URLSearchParams("q=%20aws%20&account=pr&category=Rent&type=out&status=pending&range=30D&min=5");
     expect(filtersFromParams(p, valid)).toEqual(
       f({ q: "aws", account: "pr", category: "Rent", direction: "out", status: "pending", range: "30D", min: "5" }),
     );

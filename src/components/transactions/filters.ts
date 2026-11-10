@@ -126,7 +126,7 @@ export function pageCount(total: number): number {
 
 type Params = { get(name: string): string | null };
 
-/** Builds initial filters from URL params: q, account, category, direction, status, range, min, max. */
+/** Builds initial filters from URL params: q, account, category, type (alias direction), status, range, min, max. */
 export function filtersFromParams(
   p: Params,
   valid: { accounts: readonly string[]; categories: readonly string[] },
@@ -138,7 +138,7 @@ export function filtersFromParams(
   return {
     q: p.get("q")?.trim() ?? "",
     range: pick<DateRange>("range", ["7D", "30D", "90D", "12M"], "all"),
-    direction: pick("direction", ["in", "out"], "all"),
+    direction: pick("type", ["in", "out"], pick("direction", ["in", "out"], "all")),
     category: pick("category", valid.categories, "all"),
     status: pick("status", ["completed", "pending", "failed"], "all"),
     account: pick("account", valid.accounts, "all"),
