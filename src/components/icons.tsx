@@ -33,6 +33,9 @@ const PATHS = {
   cpu: "M6 6h12v12H6z M9 9h6v6H9z M9 2v4 M15 2v4 M9 18v4 M15 18v4 M2 9h4 M2 15h4 M18 9h4 M18 15h4",
   home: "M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10",
   shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  alert: "M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0 M12 8v4 M12 16h.01",
+  chevLeft: "m15 18-6-6 6-6",
+  arrowRight: "M5 12h14 M12 5l7 7-7 7",
 } as const;
 
 export type IconName = keyof typeof PATHS;

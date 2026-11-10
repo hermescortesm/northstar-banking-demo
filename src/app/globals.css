@@ -97,6 +97,20 @@ a:hover {
   outline-offset: 2px;
 }
 
+@keyframes ns-rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.animate-rise {
+  animation: ns-rise 0.22s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
