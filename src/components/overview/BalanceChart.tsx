@@ -69,7 +69,7 @@ export function BalanceChart({ points, summary }: { points: readonly CashFlowPoi
       </div>
       <div className="h-[200px] not-phone:h-[246px]">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <AreaChart data={points as CashFlowPoint[]} margin={{ top: 8, right: 14, bottom: 0, left: 0 }} accessibilityLayer>
+          <AreaChart data={points as CashFlowPoint[]} margin={{ top: 8, right: 14, bottom: 0, left: 0 }} accessibilityLayer title={summary}>
             <defs>
               <linearGradient id="g-ov" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor={LINE} stopOpacity={0.32} />

@@ -68,3 +68,17 @@ for (const width of [1920, 1280, 768, 390, 375]) {
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
   });
 }
+
+test("touch targets are at least 44px tall at 390px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/");
+  for (const r of ["7D", "30D", "90D", "12M"]) {
+    const box = await page.getByRole("button", { name: r, exact: true }).boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  for (const row of await page.getByTestId("category-row").all()) {
+    expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  }
+  const box = await page.getByRole("link", { name: "View all" }).boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+});

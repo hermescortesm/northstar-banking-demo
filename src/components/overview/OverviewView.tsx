@@ -129,7 +129,7 @@ export function OverviewView() {
                   type="button"
                   aria-pressed={range === r}
                   onClick={() => setRange(r)}
-                  className={`h-9 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-colors not-phone:h-7 ${
+                  className={`h-11 cursor-pointer rounded-full border-0 px-3 text-[13px] font-medium transition-colors not-phone:h-7 ${
                     range === r ? "bg-text text-surface" : "bg-transparent text-text-2 hover:text-text"
                   }`}
                 >
@@ -261,7 +261,7 @@ export function OverviewView() {
                   data-testid="category-row"
                   href={transactionsHref(c.other ? { type: "out", range } : { category: c.name, range })}
                   aria-label={`View ${c.name} transactions`}
-                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg py-[7px] text-[13px] !text-text no-underline"
+                  className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg py-[7px] text-[13px] max-[720px]:min-h-11 !text-text no-underline"
                 >
                   <span className="flex min-w-0 items-center gap-2 group-hover:text-accent">
                     <i className={swatch} style={{ background: c.color }} />
