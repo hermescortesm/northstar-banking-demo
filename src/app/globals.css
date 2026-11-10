@@ -232,6 +232,32 @@ body {
   animation-delay: calc(var(--i, 0) * 40ms);
 }
 
+/*
+ * Scroll reveal (src/components/ui/Reveal.tsx): a block that starts below the fold is data-reveal="pending", which
+ * freezes every animation inside it at frame 0 (their `from` keyframe, so nothing is visible yet but layout is intact).
+ * On reaching it the attribute becomes "seen" and the animations run from the start, so staggers count from that moment.
+ * Without JS, with reduced motion or without IntersectionObserver the attribute never becomes "pending".
+ */
+[data-reveal="pending"],
+[data-reveal="pending"] *,
+[data-reveal="pending"] *::before,
+[data-reveal="pending"] *::after {
+  animation-play-state: paused !important; /* beats the `animation` shorthand of every utility below */
+}
+/* The revealed block itself needs no stagger delay (it was delayed to page load order, not scroll order). */
+.enter[data-reveal="seen"] {
+  animation-delay: 0s;
+}
+
+/* Print and PDF capture never scroll: show everything. */
+@media print {
+  [data-reveal="pending"],
+  [data-reveal="pending"] * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Pop-in for small marks (icon tiles, colour squares, pills), staggered by the row's --i. */
 .pop {
   animation: ns-pop 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;

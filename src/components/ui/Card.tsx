@@ -1,12 +1,17 @@
 import type { ComponentProps, ElementType, ReactNode } from "react";
 import { cn } from "./cn";
+import { Reveal } from "./Reveal";
 
 type CardProps<T extends ElementType> = { as?: T } & Omit<ComponentProps<T>, "as">;
 
-/** Bordered surface. Usage: <Card as="section" aria-labelledby="x"><CardHeader>...</CardHeader></Card> */
-export function Card<T extends ElementType = "div">({ as, className, ...rest }: CardProps<T>) {
+/**
+ * Bordered surface. Usage: <Card as="section" aria-labelledby="x"><CardHeader>...</CardHeader></Card>
+ * `reveal` holds the card's entrance animations until it scrolls into view (see Reveal.tsx).
+ */
+export function Card<T extends ElementType = "div">({ as, className, reveal = false, ...rest }: CardProps<T> & { reveal?: boolean }) {
   const Tag: ElementType = as ?? "div";
-  return <Tag className={cn("rounded-card border border-border bg-surface", className)} {...rest} />;
+  const cls = cn("rounded-card border border-border bg-surface", className);
+  return reveal ? <Reveal as={Tag} className={cls} {...(rest as object)} /> : <Tag className={cls} {...rest} />;
 }
 
 /** Title row of a card: heading on the left, optional action/meta on the right. */

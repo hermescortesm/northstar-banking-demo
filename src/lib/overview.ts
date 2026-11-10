@@ -94,6 +94,18 @@ export function donutGradient(rows: readonly { color: string; cents: Cents }[]):
   return stops.join(", ");
 }
 
+/**
+ * Whole-dollar amounts for a list of cent values whose sum equals the whole-dollar rounding of the cent total
+ * (largest-remainder method: floor each, hand the missing dollars to the biggest fractions). Display only; the cents are untouched.
+ */
+export function reconcileWholeDollars(cents: readonly Cents[]): number[] {
+  const out = cents.map((c) => Math.floor(c / 100));
+  let missing = Math.floor((cents.reduce((s, c) => s + c, 0) + 50) / 100) - out.reduce((s, d) => s + d, 0);
+  const order = cents.map((c, i) => ({ i, frac: c % 100 })).sort((a, b) => b.frac - a.frac || a.i - b.i);
+  for (let k = 0; missing > 0 && order.length; k++, missing--) out[order[k % order.length].i]++;
+  return out;
+}
+
 export interface Insight { icon: "trend" | "cloud" | "clock"; title: string; body: string }
 
 export function buildInsights(state: Pick<LedgerState, "accounts" | "transactions">): Insight[] {
@@ -148,6 +160,10 @@ export interface RecentRow {
   categoryIcon: string;
   /** "Nov 9 · Revenue · Operating ••4821" */
   sub: string;
+  /** "Nov 9 · Revenue": the part that may truncate on narrow screens. */
+  subLead: string;
+  /** "Operating ••4821": kept whole so the account is always readable. */
+  subTail: string;
   amount: string;
   incoming: boolean;
   status: Transaction["status"];
@@ -166,7 +182,7 @@ export interface OverviewModel {
     raw: PeriodSummary;
   };
   accounts: AccountCard[];
-  categories: { rows: CategorySlice[]; totalCents: Cents; total: string; gradient: string };
+  categories: { rows: CategorySlice[]; totalCents: Cents; total: string; gradient: string; /** Whole dollars per row; sums to the displayed total. */ dollars: number[] };
   insights: Insight[];
   recent: RecentRow[];
 }
@@ -217,7 +233,7 @@ export function buildOverview(
         pendingText: b.pendingCents ? `${formatSignedCents(b.pendingCents)} pending` : "Nothing pending",
       };
     }),
-    categories: { rows: cb.rows, totalCents: cb.totalCents, total: formatWholeDollars(cb.totalCents), gradient: donutGradient(cb.rows) },
+    categories: { rows: cb.rows, totalCents: cb.totalCents, total: formatWholeDollars(cb.totalCents), gradient: donutGradient(cb.rows), dollars: reconcileWholeDollars(cb.rows.map((r) => r.cents)) },
     insights: buildInsights(state),
     recent: state.transactions.slice(0, 5).map((t) => {
       const a = byId.get(t.accountId);
@@ -226,6 +242,8 @@ export function buildOverview(
         id: t.id, reference: t.reference, merchant: t.merchant, simulated: t.simulated, category: t.category,
         categoryColor: cat?.color ?? "#9AA3AF", categoryIcon: cat?.icon ?? "swap",
         sub: `${formatDayShort(t.day)} · ${t.category} · ${a ? `${a.shortName} ••${a.mask}` : ""}`,
+        subLead: `${formatDayShort(t.day)} · ${t.category}`,
+        subTail: a ? `${a.shortName} ••${a.mask}` : "",
         amount: formatSignedCents(t.amountCents), incoming: t.amountCents > 0, status: t.status,
       };
     }),

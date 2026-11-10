@@ -142,6 +142,24 @@ Icon, title, text and an optional action. Used in: Transactions with no matches.
 ### Pagination (`Pagination.tsx`)
 Previous, numbered, next buttons from `pageItems()`. Used in: Transactions.
 
+### Reveal, useReveal (`Reveal.tsx`)
+Scroll-triggered entrance, one rule for every viewport: an animation plays when the user reaches the element, not at page load. Elements already on screen at mount animate immediately as before. Elements below the fold are marked `data-reveal="pending"` before first paint (no flash, no layout shift): `globals.css` freezes every animation inside them at frame 0. The first time they cross the viewport (IntersectionObserver, rootMargin `0px 0px -10% 0px`, threshold 0 so tall blocks still trigger, observed once) the attribute becomes `"seen"` and the animations run from the start, so `--i` staggers count from the reveal moment. The block itself loses its own stagger delay on reveal (`.enter[data-reveal="seen"]`).
+
+Safe defaults: server render and no-JS HTML are always `"in"` (nothing hidden, nothing paused); no `IntersectionObserver` or `prefers-reduced-motion: reduce` also stay `"in"`. Content is held only visually (opacity 0 through the animation's first frame), never `display:none`, so layout and screen readers are unaffected.
+
+| API | Use |
+| --- | --- |
+| `<Reveal as="section" className="enter" style={stagger(2)}>` | Element wrapper (default `div`). Any `.enter`, `.pop`, `.donut-arc` ... inside is held until reached |
+| `<Card reveal ...>` | Same, for a card |
+| `const [ref, state] = useReveal<HTMLElement>()` | For your own element: put `ref` on it and `data-reveal={state}`. `state` is `"in" / "pending" / "seen"` |
+
+```tsx
+// Mount a heavy child (a chart) only once it is reached, inside a fixed-height box so nothing shifts:
+const [ref, reveal] = useReveal<HTMLDivElement>();
+<div ref={ref} className="h-[200px]">{reveal !== "pending" && <Chart />}</div>
+```
+Used in: every Overview block (hero, Total cash card, KPI strip, Accounts, Insights, Spending, Recent), the chart (draws when reached), Transactions rows, Transfers balances and Recent transfers panels. Tests: `Reveal.test.tsx` (mock IntersectionObserver) and `e2e/scroll-reveal.spec.ts`. In e2e, `animationsDone` skips frozen animations; `revealAll(page)` scrolls the whole page first when a test needs everything settled.
+
 ### Skeleton, SkeletonRegion, ListRowSkeleton (`Skeleton.tsx`)
 `Skeleton` is a shimmering block (decorative). `SkeletonRegion` wraps a loading layout as `role="status"` with `aria-busy` and a screen reader "Loading ..." label. Screen skeletons live in `components/skeletons/`; their block heights were measured from the real screens (1440, 1280, 768, 390, 375) so swapping in the real UI shifts the layout by at most a few pixels at the common widths.
 
@@ -170,3 +188,5 @@ Sun/moon button. Hydration safe, follows system changes until the user chooses. 
 ## Motion
 
 All motion is CSS except the Overview area chart, which uses recharts' built-in 500ms animation (turned off for reduced motion). In `globals.css`: `.enter` fade-up with `--i` stagger (`stagger()` in `lib/motion.ts`), `.animate-*` utilities, skeleton shimmer, success check draw, change flash (`useFlash`), `.pop` (staggered pop-in for icon tiles, colour squares and pills), `.donut-arc` / `.donut-center`. The Spending and Recent cards use them: arcs draw in, rows stagger, hover highlights and chevron nudges, amounts crossfade on range change. `prefers-reduced-motion: reduce` turns all of it off.
+
+Animations are scroll-triggered (see Reveal above): blocks below the fold hold their first frame and play when reached, once. The chart is mounted on reach (fixed-height box, so no layout shift) and its draw runs then.

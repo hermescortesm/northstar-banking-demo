@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
+import { useReveal } from "@/components/ui/Reveal";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 import { formatCents, formatCompactCents } from "@/lib/money";
 import { balanceScale, xTickLabels } from "@/lib/overview";
@@ -40,6 +41,8 @@ function ChartTooltip({ active, payload }: TooltipContentProps) {
 
 export function BalanceChart({ points, summary }: { points: readonly CashFlowPoint[]; summary: string }) {
   const reduced = usePrefersReducedMotion();
+  // The chart mounts (and so draws in) only once it is reached; until then a fixed-height box keeps the layout.
+  const [boxRef, reveal] = useReveal<HTMLDivElement>();
   const scale = balanceScale(points.map((p) => p.balanceCents));
   const xTicks = xTickLabels(points);
   const tick = { fontSize: 11, fill: "var(--text-3)" };
@@ -69,8 +72,8 @@ export function BalanceChart({ points, summary }: { points: readonly CashFlowPoi
         </tbody>
       </table>
       </div>
-      <div className="h-[200px] not-phone:h-[246px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <div ref={boxRef} data-reveal={reveal} className="h-[200px] not-phone:h-[246px]">
+        {reveal !== "pending" && <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart data={points as CashFlowPoint[]} margin={{ top: 8, right: 14, bottom: 0, left: 0 }} accessibilityLayer title={summary}>
             <defs>
               <linearGradient id="g-ov" x1="0" y1="0" x2="0" y2="1">
@@ -120,7 +123,7 @@ export function BalanceChart({ points, summary }: { points: readonly CashFlowPoi
               dot={false}
             />
           </AreaChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
       </div>
     </div>
   );
