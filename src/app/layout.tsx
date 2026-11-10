@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
+import { ToastProvider } from "@/components/Toast";
 import { LedgerProvider } from "@/state/LedgerProvider";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
@@ -15,9 +16,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
-        <LedgerProvider>
-          <AppShell>{children}</AppShell>
-        </LedgerProvider>
+        <ToastProvider>
+          <LedgerProvider>
+            <AppShell>{children}</AppShell>
+          </LedgerProvider>
+        </ToastProvider>
       </body>
     </html>
   );
