@@ -218,7 +218,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               key={a.id}
               href={transactionsHref({ account: a.id })}
               onClick={closeDrawer}
-              aria-label={`View ${a.name} transactions`}
+              aria-label={`${a.shortName} ${formatCents(balances[a.id].postedCents)}, view ${a.name} transactions`}
               className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] !text-text-2 hover:bg-hover hover:!text-text tablet:min-h-11"
             >
               <span className="truncate">{a.shortName}</span>

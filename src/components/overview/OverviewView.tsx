@@ -188,7 +188,6 @@ export function OverviewView() {
                 data-testid="account-card"
                 data-account={a.id}
                 data-cents={a.postedCents}
-                aria-label={`${a.name}, balance ${a.posted}. View transactions`}
                 className="flex items-center gap-3 border-t border-border px-5 py-3 !text-text no-underline transition-colors hover:bg-surface-2"
               >
                 <span className={`${tile} bg-accent-soft text-accent`}>
@@ -260,7 +259,6 @@ export function OverviewView() {
                   key={c.name}
                   data-testid="category-row"
                   href={transactionsHref(c.other ? { type: "out", range } : { category: c.name, range })}
-                  aria-label={`View ${c.name} transactions`}
                   className="group grid w-full grid-cols-[minmax(0,1fr)_auto_48px] items-center gap-2.5 rounded-lg py-[7px] text-[13px] max-[720px]:min-h-11 !text-text no-underline"
                 >
                   <span className="flex min-w-0 items-center gap-2 group-hover:text-accent">

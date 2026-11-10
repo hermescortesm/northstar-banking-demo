@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { TODAY } from "@/lib/data";
 import { formatDayWithYear } from "@/lib/dates";
 import { formatSignedCents } from "@/lib/money";
@@ -53,6 +54,23 @@ export function TransactionDrawer({
     closeRef.current?.focus();
   }, []);
 
+  // Modal behaviour: lock page scroll and make everything behind the drawer inert while it is open.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const inerted: HTMLElement[] = [];
+    for (const el of Array.from(document.body.children)) {
+      if (el instanceof HTMLElement && !el.hasAttribute("data-drawer-layer") && !el.inert) {
+        el.inert = true;
+        inerted.push(el);
+      }
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      for (const el of inerted) el.inert = false;
+    };
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -85,10 +103,11 @@ export function TransactionDrawer({
   const when = `${t.day === TODAY ? "Today" : formatDayWithYear(t.day)} · ${t.time}`;
   const kv = "flex items-center justify-between gap-4 border-b border-border py-[11px] text-[13px] last:border-b-0";
 
-  return (
+  return createPortal(
     <>
       <button
         type="button"
+        data-drawer-layer
         aria-label="Close transaction details"
         tabIndex={-1}
         onClick={onClose}
@@ -96,6 +115,7 @@ export function TransactionDrawer({
       />
       <aside
         ref={panelRef}
+        data-drawer-layer
         role="dialog"
         aria-modal="true"
         aria-labelledby="dt-h"
@@ -116,7 +136,8 @@ export function TransactionDrawer({
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
+        {/* focusable on purpose: keyboard users can scroll the details when nothing inside is focusable */}
+        <div role="region" aria-label="Transaction details" tabIndex={0} className="flex flex-1 flex-col gap-5 overflow-y-auto p-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent">
           <div className="flex flex-col items-start gap-2.5">
             <CategoryTile category={t.category} size="lg" />
             <div className="min-w-0 max-w-full">
@@ -204,6 +225,7 @@ export function TransactionDrawer({
           </button>
         </div>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
