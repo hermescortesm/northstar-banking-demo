@@ -14,7 +14,7 @@ function ChartTooltip({ active, payload }: TooltipContentProps) {
   const row = "flex justify-between gap-4 py-px tabular-nums";
   const lbl = "flex items-center gap-1.5 opacity-70";
   return (
-    <div className="min-w-[168px] rounded-xl bg-[#0a0c10] px-3 py-2.5 text-xs text-white shadow-[var(--shadow-md)]">
+    <div className="min-w-[168px] rounded-xl border border-tip-bd bg-tip-bg px-3 py-2.5 text-xs text-tip-fg shadow-md">
       <div className="mb-1.5 font-semibold opacity-80">{p.long}</div>
       <div className={row}>
         <span className={lbl}>Ending balance</span>

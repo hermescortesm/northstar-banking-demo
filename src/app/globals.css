@@ -37,6 +37,67 @@
   --shadow-md: 0 6px 20px rgba(10, 12, 16, 0.08);
   --shadow-lg: 0 24px 64px rgba(10, 12, 16, 0.18), 0 2px 8px rgba(10, 12, 16, 0.06);
   --scrim: rgba(10, 12, 16, 0.38);
+  --side: #edeff2;
+  --nav-on: #ffffff;
+  --tip-bg: #0a0c10;
+  --tip-fg: #ffffff;
+  --tip-bd: transparent;
+  --tip-ok: #3fcf97;
+  --tip-err: #ff7a6e;
+  --on-accent: #ffffff;
+  --avatar: #e1e4e9;
+  --avatar-ink: #2b3240;
+  --mark-from: #1fd39c;
+  --mark-to: #07805c;
+  --mark-ink: #ffffff;
+  --sk-shine: rgba(255, 255, 255, 0.75);
+  color-scheme: light;
+}
+
+/* Dark theme: tokens from the design reference (.ns.dark). Set on <html data-theme="dark"> before first paint. */
+:root[data-theme="dark"] {
+  --bg: #060708;
+  --side: #060708;
+  --surface: #0e0f12;
+  --surface-2: #131519;
+  --hover: #181a1f;
+  --border: #1f2227;
+  --border-strong: #2c3038;
+  --text: #f3f5f8;
+  --text-2: #b3bac6;
+  --text-3: #8a92a0;
+  --accent: #3ddba4;
+  --accent-hi: #6be7bc;
+  --accent-fill: #3ddba4;
+  --accent-ink: #03241a;
+  --accent-soft: rgba(61, 219, 164, 0.1);
+  --accent-ring: rgba(61, 219, 164, 0.25);
+  --pos: #3ddba4;
+  --pos-soft: rgba(61, 219, 164, 0.1);
+  --neg: #ff7a6e;
+  --neg-soft: rgba(255, 122, 110, 0.1);
+  --warn: #f5b85b;
+  --warn-soft: rgba(245, 184, 91, 0.1);
+  --info: #8eb1ff;
+  --info-soft: rgba(142, 177, 255, 0.1);
+  --chart-line: #3ddba4;
+  --chart-out: #3a3f48;
+  --nav-on: #16181c;
+  --tip-bg: #1a1c21;
+  --tip-fg: #f3f5f8;
+  --tip-bd: #2c3038;
+  --shadow-sm: none;
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --on-accent: #03241a;
+  --avatar: #1e2127;
+  --avatar-ink: #d6dbe3;
+  --mark-from: #3ddba4;
+  --mark-to: #0b8f66;
+  --mark-ink: #03241a;
+  --sk-shine: rgba(255, 255, 255, 0.06);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -64,6 +125,18 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-scrim: var(--scrim);
+  --color-side: var(--side);
+  --color-nav-on: var(--nav-on);
+  --color-tip-bg: var(--tip-bg);
+  --color-tip-fg: var(--tip-fg);
+  --color-tip-bd: var(--tip-bd);
+  --color-tip-ok: var(--tip-ok);
+  --color-tip-err: var(--tip-err);
+  --color-on-accent: var(--on-accent);
+  --color-avatar: var(--avatar);
+  --color-avatar-ink: var(--avatar-ink);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
   --radius-card: 16px;
   --radius-panel: 20px;
   --shadow-lg: var(--shadow-lg);
@@ -80,11 +153,14 @@ body {
   letter-spacing: -0.005em;
 }
 
-a {
-  color: var(--accent);
-}
-a:hover {
-  color: var(--accent-hi);
+/* Base link colours live in the base layer so any text-* utility on a link wins without !important. */
+@layer base {
+  a {
+    color: var(--accent);
+  }
+  a:hover {
+    color: var(--accent-hi);
+  }
 }
 
 /* Tabular numerals for money */
@@ -95,6 +171,38 @@ a:hover {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/*
+ * Form fields show ONE border: no outline, the field's own border turns accent, thickened by a 1px inset
+ * line that hugs it (no gap, no outer ring). Applies to :focus too so mouse focus in text inputs looks the same.
+ */
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--neg);
+}
+.field[aria-invalid="true"]:focus,
+.field[aria-invalid="true"]:focus-visible {
+  border-color: var(--neg);
+  box-shadow: inset 0 0 0 1px var(--neg);
+}
+.field {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Theme switch: colours ease for a moment, only while html.theme-anim is set (never on first paint). */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-anim,
+  html.theme-anim *,
+  html.theme-anim *::before,
+  html.theme-anim *::after {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, fill 0.2s ease, stroke 0.2s ease !important;
+  }
 }
 
 /* ---- Motion: CSS-only, transform/opacity, 150-600ms. Nothing here changes layout. ---- */
@@ -188,7 +296,7 @@ a:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, var(--sk-shine), transparent);
   animation: ns-shimmer 1.4s ease-in-out infinite;
 }
 

@@ -1,5 +1,5 @@
 import { GRID } from "../transactions/parts";
-import { Skeleton, SkeletonRegion } from "./Skeleton";
+import { Skeleton, SkeletonRegion } from "../ui/Skeleton";
 
 /** One table row: desktop grid columns, collapsing to the stacked two-column layout on phones. */
 export function TransactionRowSkeleton() {

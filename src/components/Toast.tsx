@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { IconButton } from "./ui/IconButton";
 
 export type ToastKind = "success" | "error";
 interface ToastItem { id: number; message: string; kind: ToastKind; leaving?: boolean }
@@ -59,25 +60,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             data-kind={t.kind}
-            className={`${t.leaving ? "animate-toast-out" : "animate-toast-in"} pointer-events-auto flex min-w-[260px] max-w-[400px] items-center gap-2.5 rounded-[14px] bg-[#0a0c10] py-3 pl-3 pr-3.5 text-[13px] font-medium text-white shadow-lg phone:min-w-0 phone:max-w-none`}
+            className={`${t.leaving ? "animate-toast-out" : "animate-toast-in"} pointer-events-auto flex min-w-[260px] max-w-[400px] items-center gap-2.5 rounded-[14px] border border-tip-bd bg-tip-bg py-3 pl-3 pr-3.5 text-[13px] font-medium text-tip-fg shadow-lg phone:min-w-0 phone:max-w-none`}
           >
             <span
               aria-hidden="true"
               className={`grid size-[22px] flex-none place-items-center rounded-full ${
-                t.kind === "success" ? "bg-[rgba(63,207,151,.22)] text-[#3fcf97]" : "bg-[rgba(255,122,110,.22)] text-[#ff7a6e]"
+                t.kind === "success" ? "bg-tip-ok/20 text-tip-ok" : "bg-tip-err/20 text-tip-err"
               }`}
             >
               <Icon name={t.kind === "success" ? "check" : "alert"} size={14} />
             </span>
             <span className="flex-1">{t.message}</span>
-            <button
-              type="button"
-              aria-label="Dismiss notification"
+            <IconButton
+              label="Dismiss notification"
               onClick={() => dismiss(t.id)}
-              className="-my-1.5 -mr-1.5 grid size-11 flex-none cursor-pointer place-items-center rounded-full border-0 bg-transparent text-white/70 transition-colors hover:bg-white/10 hover:text-white not-phone:size-8"
+              className="-my-1.5 -mr-1.5 !text-tip-fg/70 hover:!bg-tip-fg/10 hover:!text-tip-fg not-phone:!size-8"
             >
               <Icon name="x" size={14} />
-            </button>
+            </IconButton>
           </div>
         ))}
       </div>

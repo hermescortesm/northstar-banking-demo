@@ -1,4 +1,4 @@
-import { ListRowSkeleton, Skeleton, SkeletonRegion } from "./Skeleton";
+import { ListRowSkeleton, Skeleton, SkeletonRegion } from "../ui/Skeleton";
 
 const card = "rounded-card border border-border bg-surface";
 const cardH = "flex flex-wrap items-center justify-between gap-3 px-5 pt-[18px]";
@@ -115,7 +115,7 @@ export function RecentTransactionsSkeleton({ rows = 5 }: { rows?: number }) {
         <Skeleton className="h-[18px] w-44" />
         <Skeleton className="h-7 w-20 !rounded-full" />
       </div>
-      {Array.from({ length: rows }, (_, i) => <ListRowSkeleton key={i} py="py-[11px]" />)}
+      {Array.from({ length: rows }, (_, i) => <ListRowSkeleton key={i} py="py-3" />)}
     </section>
   );
 }

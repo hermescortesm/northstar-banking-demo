@@ -1,154 +1,46 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { useFlash } from "@/lib/useFlash";
-import { MEMO_MAX } from "@/lib/data";
+import { CATEGORIES, MEMO_MAX } from "@/lib/data";
 import { formatDayShort } from "@/lib/dates";
 import { SIM_CLOCK, validateTransfer } from "@/lib/ledger";
 import { formatCents } from "@/lib/money";
 import {
   fieldDomId, firstErrorField, formatAmountOnBlur, memoCounter, nextRequestId, reviewBalances, submitFailureMessage,
 } from "@/lib/transfer-form";
-import type { Account, AccountId, TransferErrors, TransferInput } from "@/lib/types";
+import type { AccountId, TransferErrors, TransferInput } from "@/lib/types";
+import { useFlash } from "@/lib/useFlash";
 import { useLedger } from "@/state/LedgerProvider";
-import { TransfersSkeleton } from "../skeletons/TransfersSkeleton";
 import { Icon } from "../icons";
+import { TransfersSkeleton } from "../skeletons/TransfersSkeleton";
 import { useToast } from "../Toast";
-import {
-  btn, btnAccent, btnGhost, btnPrimary, card, cardB, cardH, cardTitle, chipPend, errTxt, help, input, kv, label, note,
-  noteErr, sumAmt,
-} from "./ui";
-
-type Step = "form" | "review" | "sending" | "done";
+import { Badge, SimTag } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Card, CardHeader, CardSub, CardTitle } from "../ui/Card";
+import { Field, FieldError } from "../ui/Field";
+import { IconTile } from "../ui/IconTile";
+import { AmountInput, Input } from "../ui/Input";
+import { KeyValueList, KeyValueRow } from "../ui/KeyValue";
+import { LinkButton } from "../ui/LinkButton";
+import { ListRow } from "../ui/ListRow";
+import { Money } from "../ui/Money";
+import { Notice } from "../ui/Notice";
+import { AccountOptions, acctLabel } from "./AccountOptions";
+import { FormSection } from "./FormSection";
+import { Stepper, type Step } from "./Stepper";
 
 interface DoneResult { amountCents: number; from: string; to: string; reference: string; time: string }
 
 const SEND_MS = 800;
-const acctLabel = (a: Account) => `${a.name} ••${a.mask}`;
 
-function Stepper({ step }: { step: Step }) {
-  const idx = step === "form" ? 0 : step === "done" ? 2 : 1;
-  const items = ["Details", "Review", "Done"];
-  return (
-    <ol aria-label="Transfer steps" className="flex flex-wrap items-center gap-2">
-      {items.map((name, i) => {
-        const on = i === idx && step !== "done";
-        const done = i < idx || step === "done";
-        return (
-          <li key={name} className="contents" aria-current={on ? "step" : undefined}>
-            {i > 0 && <span aria-hidden="true" className="h-[1.5px] w-7 bg-border-strong" />}
-            <span className={`flex items-center gap-2 text-[13px] font-medium transition-colors duration-200 ${on ? "text-text" : "text-text-3"}`}>
-              <span
-                aria-hidden="true"
-                className={`grid size-6 place-items-center rounded-full border-[1.5px] text-xs font-semibold transition-[background-color,border-color,color] duration-200 ${
-                  on
-                    ? "border-text bg-text text-surface"
-                    : done
-                      ? "border-accent bg-accent-soft text-accent"
-                      : "border-border-strong"
-                }`}
-              >
-                {i + 1}
-              </span>
-              {name}
-              {done && <span className="sr-only"> (complete)</span>}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function AccountOptions({
-  side, accounts, selected, onPick, caption, describedBy,
-}: {
-  side: "from" | "to";
-  accounts: readonly Account[];
-  selected: AccountId | "";
-  onPick: (id: AccountId) => void;
-  caption: (a: Account) => string;
-  describedBy?: string;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={side === "from" ? "Source account" : "Destination account"}
-      aria-describedby={describedBy}
-      className="grid grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-2.5"
-    >
-      {accounts.map((a) => {
-        const on = selected === a.id;
-        return (
-          <button
-            key={a.id}
-            id={`xf-${side}-${a.id}`}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onPick(a.id)}
-            className={`flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-[border-color,box-shadow,background,transform] duration-150 hover:-translate-y-px ${
-              on
-                ? "border-accent bg-accent-soft shadow-[0_0_0_3px_var(--accent-ring)]"
-                : "border-border-strong bg-surface hover:border-text-3"
-            }`}
-          >
-            <span
-              aria-hidden="true"
-              className={`mt-px grid size-[18px] flex-none place-items-center rounded-full border-[1.5px] bg-surface ${
-                on ? "border-accent" : "border-border-strong"
-              }`}
-            >
-              {on && <span className="size-2 rounded-full bg-accent" />}
-            </span>
-            <span>
-              <span className="block font-medium">{acctLabel(a)}</span>
-              <span className="mt-0.5 block text-xs text-text-3">{caption(a)}</span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function Section({ n, title, action, children }: { n: number; title: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-3 border-b border-border p-5 last:border-b-0">
-      <div className="flex items-center justify-between gap-2.5 text-sm font-semibold">
-        <span className="flex items-center gap-2.5">
-          <span aria-hidden="true" className="grid size-[22px] place-items-center rounded-[7px] bg-hover text-xs text-text-2">
-            {n}
-          </span>
-          {title}
-        </span>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
+/** Balance in the side panel; flashes briefly when the amount changes. */
 function Posted({ cents }: { cents: number }) {
   const n = useFlash(cents);
   return (
-    <span key={n} data-role="posted" className={n ? "flash" : undefined}>
-      {formatCents(cents)}
-    </span>
+    <Money key={n} cents={cents} data-role="posted" className={n ? "flash" : undefined} />
   );
 }
 
-function FieldError({ id, message }: { id: string; message?: string }) {
-  if (!message) return null;
-  return (
-    <span id={id} className={errTxt}>
-      <span aria-hidden="true" className="flex-none"><Icon name="alert" size={14} /></span>
-      {message}
-    </span>
-  );
-}
-
-/** `loading` renders the matching skeleton instead (same layout, no data). */
 export function TransferFlow({ loading = false }: { loading?: boolean }) {
   const ledger = useLedger();
   const { accounts, balances, submitTransfer } = ledger;
@@ -254,25 +146,21 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
   const acctName = (id: AccountId) => accounts.find((a) => a.id === id)?.shortName ?? id;
   const hasErr = Object.keys(errors).length > 0;
   if (loading) return <TransfersSkeleton />;
-  const inputBorder = (bad: boolean) => (bad ? "border-neg focus:!shadow-[0_0_0_3px_var(--neg-soft)]" : "border-border-strong");
 
   return (
     <div className="flex flex-col gap-6">
-      <div className={note}>
-        <span className="mt-px flex-none text-warn"><Icon name="info" size={16} /></span>
-        <span>
-          <b>This is a simulated transfer.</b> No money moves and no bank is contacted. Balances and transactions update
-          only in this preview and reset when it reloads.
-        </span>
-      </div>
+      <Notice>
+        <b>This is a simulated transfer.</b> No money moves and no bank is contacted. Balances and transactions update
+        only in this preview and reset when it reloads.
+      </Notice>
 
       <Stepper step={step} />
 
       <div className="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-5 max-[1180px]:grid-cols-[minmax(0,1fr)]">
         <div className="min-w-0">
           {step === "form" && (
-            <form className={`${card} animate-step`} aria-label="Transfer details" onSubmit={onReview} noValidate>
-              <Section n={1} title="From">
+            <Card as="form" className="animate-step" aria-label="Transfer details" onSubmit={onReview} noValidate>
+              <FormSection n={1} title="From">
                 <AccountOptions
                   side="from"
                   accounts={accounts}
@@ -286,14 +174,15 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                   }}
                 />
                 <FieldError id="xf-from-err" message={errors.from} />
-              </Section>
-              <Section
+              </FormSection>
+              <FormSection
                 n={2}
                 title="To"
                 action={
-                  <button
-                    type="button"
-                    className={`${btnGhost} !h-11 not-phone:!h-8 !px-2.5 !text-[13px]`}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="!px-2.5 !text-[13px]"
                     disabled={!from || !to}
                     onClick={() => {
                       setFrom(to);
@@ -303,7 +192,7 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                   >
                     <Icon name="swap" size={14} />
                     Swap accounts
-                  </button>
+                  </Button>
                 }
               >
                 <AccountOptions
@@ -318,16 +207,21 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                   }}
                 />
                 <FieldError id="xf-to-err" message={errors.to} />
-              </Section>
-              <Section n={3} title="Amount">
-                <div className="flex flex-col gap-1.5">
-                  <label className={label} htmlFor="xf-amount">Amount</label>
-                  <div className="relative">
-                    <span aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[22px] text-text-3">$</span>
-                    <input
-                      id="xf-amount"
-                      inputMode="decimal"
-                      autoComplete="off"
+              </FormSection>
+              <FormSection n={3} title="Amount">
+                <Field
+                  id="xf-amount"
+                  label="Amount"
+                  error={errors.amount}
+                  hint={
+                    fromAcct
+                      ? `Available in ${fromAcct.name}: ${formatCents(balances[fromAcct.id].availableCents)}`
+                      : "Choose a source account to see what’s available."
+                  }
+                >
+                  {(p) => (
+                    <AmountInput
+                      {...p}
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => {
@@ -335,102 +229,70 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                         clearErr("amount");
                       }}
                       onBlur={() => setAmount((v) => formatAmountOnBlur(v))}
-                      aria-invalid={!!errors.amount}
-                      aria-describedby={`${errors.amount ? "xf-amount-err " : ""}xf-amount-hint`}
-                      className={`${input} h-14 pl-8 text-2xl font-medium tabular-nums ${inputBorder(!!errors.amount)}`}
                     />
-                  </div>
-                  <FieldError id="xf-amount-err" message={errors.amount} />
-                  <span id="xf-amount-hint" className={help}>
-                    {fromAcct
-                      ? `Available in ${fromAcct.name}: ${formatCents(balances[fromAcct.id].availableCents)}`
-                      : "Choose a source account to see what’s available."}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between">
-                    <label className={label} htmlFor="xf-memo">
-                      Note <span className="font-normal text-text-3">(optional)</span>
-                    </label>
-                    <span className={help} aria-hidden="true">{memoCounter(memo, MEMO_MAX)}</span>
-                  </div>
-                  <input
-                    id="xf-memo"
-                    maxLength={80}
-                    placeholder="e.g. Move excess cash to reserve"
-                    value={memo}
-                    onChange={(e) => {
-                      setMemo(e.target.value);
-                      clearErr("memo");
-                    }}
-                    aria-invalid={!!errors.memo}
-                    aria-describedby={errors.memo ? "xf-memo-err" : undefined}
-                    className={`${input} h-11 not-phone:h-10 ${inputBorder(!!errors.memo)}`}
-                  />
-                  <FieldError id="xf-memo-err" message={errors.memo} />
-                </div>
-              </Section>
+                  )}
+                </Field>
+                <Field
+                  id="xf-memo"
+                  label={<>Note <span className="font-normal text-text-3">(optional)</span></>}
+                  aside={memoCounter(memo, MEMO_MAX)}
+                  error={errors.memo}
+                >
+                  {(p) => (
+                    <Input
+                      {...p}
+                      maxLength={80}
+                      placeholder="e.g. Move excess cash to reserve"
+                      value={memo}
+                      onChange={(e) => {
+                        setMemo(e.target.value);
+                        clearErr("memo");
+                      }}
+                    />
+                  )}
+                </Field>
+              </FormSection>
               <div className="flex flex-wrap items-center justify-end gap-3 p-5">
                 {hasErr && (
-                  <span role="alert" className={`${errTxt} mr-auto`}>
+                  <span role="alert" className="mr-auto flex items-center gap-1.5 text-xs text-neg">
                     <span aria-hidden="true"><Icon name="alert" size={14} /></span>
                     Fix the highlighted fields to continue.
                   </span>
                 )}
-                <button type="submit" className={btnPrimary}>
+                <Button type="submit" variant="primary">
                   Review transfer
                   <Icon name="arrowRight" size={16} />
-                </button>
+                </Button>
               </div>
-            </form>
+            </Card>
           )}
 
           {(step === "review" || step === "sending") && review && fromAcct && toAcct && (
-            <section className={`${card} animate-step`} aria-labelledby="rv-h">
-              <div className={cardH}>
-                <h2 id="rv-h" ref={stepHeading} tabIndex={-1} className={`${cardTitle} outline-none`}>
+            <Card as="section" className="animate-step" aria-labelledby="rv-h">
+              <CardHeader>
+                <h2 id="rv-h" ref={stepHeading} tabIndex={-1} className="text-[15px] font-semibold tracking-[-0.01em] outline-none">
                   Review and confirm
                 </h2>
-                <span className={chipPend}>Simulated transfer</span>
-              </div>
-              <div className={`${cardB} flex flex-col gap-[18px]`}>
+                <Badge tone="warning" outlined>Simulated transfer</Badge>
+              </CardHeader>
+              <div className="flex flex-col gap-[18px] px-5 pb-5 pt-4">
                 <div>
                   <div className="text-[13px] text-text-3">You’re moving</div>
-                  <div className={`${sumAmt} mt-1`}>{formatCents(cents)}</div>
+                  <div className="mt-1 text-[40px] font-semibold leading-none tracking-[-0.04em] tabular-nums">{formatCents(cents)}</div>
                 </div>
-                <dl>
-                  {[
-                    ["From", acctLabel(fromAcct), `Balance ${review.from.before} → ${review.from.after}`],
-                    ["To", acctLabel(toAcct), `Balance ${review.to.before} → ${review.to.after}`],
-                    ["Note", memo.trim() || "-", ""],
-                    ["Arrives", "Instantly (simulated)", ""],
-                    ["Fee", "$0.00", ""],
-                  ].map(([k, v, small]) => (
-                    <div key={k} className={kv}>
-                      <dt className="text-text-3">{k}</dt>
-                      <dd className="flex min-w-0 flex-col items-end gap-0.5 break-words text-right font-medium">
-                        {v}
-                        {small && <small className="text-xs font-normal text-text-3">{small}</small>}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className={note}>
-                  <span className="mt-px flex-none text-warn"><Icon name="info" size={16} /></span>
-                  <span>
-                    Confirming records this transfer in the demo ledger only. It’s labeled <b>Simulated</b> everywhere it appears.
-                  </span>
-                </div>
-                {submitErr && (
-                  <div className={noteErr} role="alert">
-                    <span className="mt-px flex-none text-neg"><Icon name="alert" size={16} /></span>
-                    <span>{submitErr}</span>
-                  </div>
-                )}
+                <KeyValueList>
+                  <KeyValueRow label="From" small={`Balance ${review.from.before} → ${review.from.after}`}>{acctLabel(fromAcct)}</KeyValueRow>
+                  <KeyValueRow label="To" small={`Balance ${review.to.before} → ${review.to.after}`}>{acctLabel(toAcct)}</KeyValueRow>
+                  <KeyValueRow label="Note">{memo.trim() || "-"}</KeyValueRow>
+                  <KeyValueRow label="Arrives">Instantly (simulated)</KeyValueRow>
+                  <KeyValueRow label="Fee">$0.00</KeyValueRow>
+                </KeyValueList>
+                <Notice>
+                  Confirming records this transfer in the demo ledger only. It’s labeled <b>Simulated</b> everywhere it appears.
+                </Notice>
+                {submitErr && <Notice tone="danger" role="alert">{submitErr}</Notice>}
                 <div className="flex flex-wrap justify-between gap-2">
-                  <button
-                    type="button"
-                    className={btn}
+                  <Button
                     disabled={step === "sending"}
                     onClick={() => {
                       setSubmitErr("");
@@ -439,30 +301,17 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                   >
                     <Icon name="chevLeft" size={16} />
                     Edit details
-                  </button>
-                  <button
-                    type="button"
-                    className={btnAccent}
-                    disabled={step === "sending"}
-                    aria-busy={step === "sending"}
-                    onClick={onConfirm}
-                  >
-                    {step === "sending" ? (
-                      <>
-                        <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-                        Processing…
-                      </>
-                    ) : (
-                      "Confirm simulated transfer"
-                    )}
-                  </button>
+                  </Button>
+                  <Button variant="accent" loading={step === "sending"} onClick={onConfirm}>
+                    {step === "sending" ? "Processing…" : "Confirm simulated transfer"}
+                  </Button>
                 </div>
               </div>
-            </section>
+            </Card>
           )}
 
           {step === "done" && result && (
-            <section className={`${card} animate-step`} aria-labelledby="done-h">
+            <Card as="section" className="animate-step" aria-labelledby="done-h">
               <div role="status" className="flex flex-col items-center gap-3.5 px-6 py-12 text-center">
                 <span aria-hidden="true" className="animate-pop grid size-16 place-items-center rounded-full bg-pos-soft text-pos">
                   <svg viewBox="0 0 24 24" width={30} height={30} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
@@ -472,83 +321,77 @@ export function TransferFlow({ loading = false }: { loading?: boolean }) {
                 <h2 id="done-h" ref={stepHeading} tabIndex={-1} className="text-[22px] font-semibold tracking-[-0.02em] outline-none">
                   Simulated transfer complete
                 </h2>
-                <div className={sumAmt}>{formatCents(result.amountCents)}</div>
+                <div className="text-[40px] font-semibold leading-none tracking-[-0.04em] tabular-nums">{formatCents(result.amountCents)}</div>
                 <p className="text-text-3">{result.from} → {result.to}</p>
                 <p className="text-text-3">Reference {result.reference} · {result.time}</p>
                 <p className="max-w-[420px] text-text-3">
                   Balances on every screen now include this transfer, and it appears at the top of Transactions.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Link href="/transactions" className={btn}>View in transactions</Link>
-                  <button type="button" className={btnPrimary} onClick={reset}>New transfer</button>
+                  <LinkButton href="/transactions">View in transactions</LinkButton>
+                  <Button variant="primary" onClick={reset}>New transfer</Button>
                 </div>
               </div>
-            </section>
+            </Card>
           )}
         </div>
 
-        <aside className={`${card} sticky top-[88px] max-[1180px]:static`} aria-label="Account balances">
-          <div className={`${cardH} !pb-1.5`}>
-            <h2 className={cardTitle}>Account balances</h2>
-          </div>
+        <Card as="aside" className="sticky top-[88px] max-[1180px]:static" aria-label="Account balances">
+          <CardHeader className="!pb-1.5">
+            <CardTitle>Account balances</CardTitle>
+          </CardHeader>
           <div className="px-5 pb-5 pt-1.5">
-            {accounts.map((a) => (
-              <div key={a.id} className={kv} data-testid={`bal-${a.id}`}>
-                <span className="text-text-3">{acctLabel(a)}</span>
-                <span className="flex flex-col items-end gap-0.5 text-right font-medium tabular-nums">
+            <KeyValueList>
+              {accounts.map((a) => (
+                <KeyValueRow
+                  key={a.id}
+                  testId={`bal-${a.id}`}
+                  label={acctLabel(a)}
+                  small={balances[a.id].pendingCents !== 0 ? `Available ${formatCents(balances[a.id].availableCents)}` : "No pending activity"}
+                >
                   <Posted cents={balances[a.id].postedCents} />
-                  <small className="text-xs font-normal text-text-3">
-                    {balances[a.id].pendingCents !== 0
-                      ? `Available ${formatCents(balances[a.id].availableCents)}`
-                      : "No pending activity"}
-                  </small>
-                </span>
-              </div>
-            ))}
+                </KeyValueRow>
+              ))}
+            </KeyValueList>
           </div>
-        </aside>
+        </Card>
       </div>
 
-      <section className={card} aria-labelledby="rx-h">
-        <div className={`${cardH} !pb-3.5`}>
+      <Card as="section" aria-labelledby="rx-h">
+        <CardHeader>
           <div>
-            <h2 id="rx-h" className={cardTitle}>Recent transfers</h2>
-            <div className="mt-0.5 text-[13px] text-text-3">Outgoing side of each internal transfer</div>
+            <CardTitle id="rx-h">Recent transfers</CardTitle>
+            <CardSub className="mt-0.5 block">Outgoing side of each internal transfer</CardSub>
           </div>
-          <Link href="/transactions?category=Transfer&type=out" className={`${btnGhost} !h-11 not-phone:!h-7 !px-2 !text-xs`}>
+          <LinkButton href="/transactions?category=Transfer&type=out" variant="ghost" size="sm" className="!px-2 !text-xs not-phone:!h-7">
             View all
             <Icon name="chevRight" size={14} />
-          </Link>
-        </div>
+          </LinkButton>
+        </CardHeader>
         <ul>
           {recent.map((t) => (
-            <li
-              key={t.id}
-              className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 border-t border-border px-5 py-[11px]"
-            >
-              <span aria-hidden="true" className="grid size-9 place-items-center rounded-[10px] bg-[#6B7A9021] text-[#6B7A90]">
-                <Icon name="swap" />
-              </span>
-              <span className="min-w-0">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className="min-w-0 truncate">{t.merchant}</span>
-                  {t.simulated && (
-                    <span className="flex-none rounded-[5px] bg-warn-soft px-[5px] py-px text-[10px] font-semibold uppercase tracking-[.04em] text-warn">
-                      Simulated
-                    </span>
-                  )}
-                </span>
-                <span className="block truncate text-xs text-text-3">{formatDayShort(t.day)} · {t.description}</span>
-              </span>
-              <span className="flex flex-col items-end gap-[3px]">
-                <span className="font-medium tabular-nums">{formatCents(t.amountCents)}</span>
-                <span className="text-xs text-text-3">{acctName(t.accountId)}</span>
-              </span>
+            <li key={t.id}>
+              <ListRow
+                leading={<IconTile color={CATEGORIES.Transfer.color}><Icon name="swap" /></IconTile>}
+                title={
+                  <span className="flex items-center gap-1.5">
+                    <span className="min-w-0 truncate">{t.merchant}</span>
+                    {t.simulated && <SimTag className="ml-0" />}
+                  </span>
+                }
+                subtitle={<>{formatDayShort(t.day)} · {t.description}</>}
+                trailing={
+                  <>
+                    <Money cents={t.amountCents} className="font-medium" />
+                    <span className="text-xs text-text-3">{acctName(t.accountId)}</span>
+                  </>
+                }
+              />
             </li>
           ))}
           {recent.length === 0 && <li className="border-t border-border px-5 py-6 text-center text-text-3">No transfers yet.</li>}
         </ul>
-      </section>
+      </Card>
     </div>
   );
 }

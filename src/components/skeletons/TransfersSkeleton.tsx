@@ -1,5 +1,4 @@
-import { Skeleton, SkeletonRegion } from "./Skeleton";
-import { ListRowSkeleton } from "./Skeleton";
+import { ListRowSkeleton, Skeleton, SkeletonRegion } from "../ui/Skeleton";
 
 const card = "rounded-[16px] border border-border bg-surface";
 
@@ -64,7 +63,7 @@ export function TransfersSkeleton() {
             <Skeleton className="mt-1 h-4 w-56 max-w-full" />
           </div>
         </div>
-        {[0, 1, 2].map((i) => <ListRowSkeleton key={i} py="py-[11px]" />)}
+        {[0, 1, 2].map((i) => <ListRowSkeleton key={i} py="py-3" />)}
       </section>
     </SkeletonRegion>
   );

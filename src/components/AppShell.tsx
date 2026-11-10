@@ -8,6 +8,15 @@ import { useFlash } from "@/lib/useFlash";
 import { formatCents } from "@/lib/money";
 import { transactionsHref } from "./overview/links";
 import { Icon } from "./icons";
+import { Avatar } from "./ui/Avatar";
+import { Badge } from "./ui/Badge";
+import { IconButton } from "./ui/IconButton";
+import { Kbd } from "./ui/Kbd";
+import { Money } from "./ui/Money";
+import { LinkButton } from "./ui/LinkButton";
+import { SearchInput } from "./ui/Input";
+import { ThemeToggle } from "./ui/ThemeToggle";
+import { useDialogKeys } from "./ui/useDialog";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
 const BADGE_TEXT = "Simulated demo - no real funds";
@@ -16,8 +25,8 @@ function LogoMark() {
   return (
     <span
       aria-hidden="true"
-      className="grid size-7 flex-none place-items-center rounded-lg text-white"
-      style={{ background: "linear-gradient(145deg,#1FD39C,#07805C)" }}
+      className="grid size-7 flex-none place-items-center rounded-lg text-mark-ink"
+      style={{ background: "linear-gradient(145deg,var(--mark-from),var(--mark-to))" }}
     >
       <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor">
         <path d="M12 1.5l2.4 8.1 8.1 2.4-8.1 2.4L12 22.5l-2.4-8.1L1.5 12l8.1-2.4z" />
@@ -29,14 +38,9 @@ function LogoMark() {
 function SidebarBalance({ cents }: { cents: number }) {
   const n = useFlash(cents);
   return (
-    <span key={n} className={`num font-medium text-text ${n ? "flash" : ""}`}>
-      {formatCents(cents)}
-    </span>
+    <Money key={n} cents={cents} className={`font-medium text-text ${n ? "flash" : ""}`} />
   );
 }
-
-const ghostIconBtn =
-  "size-9 flex-none items-center justify-center cursor-pointer rounded-full border border-transparent bg-transparent text-text-2 transition-colors duration-150 hover:bg-hover hover:text-text";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -75,31 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [mobileOpen]);
 
   // Escape closes; Tab is trapped inside the drawer while it is open.
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return closeDrawer();
-      if (e.key !== "Tab" || !asideRef.current) return;
-      const items = Array.from(
-        asideRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), input"),
-      ).filter((el) => el.offsetParent !== null);
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-      if (!asideRef.current.contains(active)) {
-        e.preventDefault();
-        first?.focus();
-      } else if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [mobileOpen, closeDrawer]);
+  useDialogKeys(asideRef, mobileOpen, closeDrawer);
 
   const lbl = collapsed ? `hidden tablet:inline` : "";
 
@@ -129,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         role={mobileOpen ? "dialog" : undefined}
         aria-modal={mobileOpen ? true : undefined}
         className={[
-          "sticky top-0 z-50 flex h-screen flex-none flex-col gap-1.5 overflow-y-auto overflow-x-hidden bg-bg px-2.5 py-3.5 transition-[width,transform] duration-200",
+          "sticky top-0 z-50 flex h-screen flex-none flex-col gap-1.5 overflow-y-auto overflow-x-hidden bg-side px-2.5 py-3.5 transition-[width,transform] duration-200",
           collapsed ? "w-[76px]" : "w-64",
           `tablet:fixed tablet:inset-y-0 tablet:left-0 tablet:!w-[284px] tablet:h-auto`,
           mobileOpen
@@ -144,49 +124,31 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Link
             href="/"
-            className="flex min-h-11 items-center gap-2.5 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] !text-text"
+            className="flex min-h-11 items-center gap-2.5 whitespace-nowrap text-[15px] font-semibold tracking-[-0.01em] text-text"
           >
             <LogoMark />
             <span className={lbl}>Northstar</span>
           </Link>
-          <button
-            type="button"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          <IconButton
+            label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-expanded={!collapsed}
             onClick={() => setCollapsed((c) => !c)}
-            className={`${ghostIconBtn} ${collapsed ? "hidden" : "inline-flex"} tablet:hidden`}
+            className={`tablet:hidden ${collapsed ? "desktop:hidden" : ""}`}
           >
             <Icon name="panel" size={16} />
-          </button>
-          <button
-            type="button"
-            ref={closeRef}
-            aria-label="Close navigation"
-            onClick={closeDrawer}
-            className={`${ghostIconBtn} hidden tablet:inline-flex tablet:size-11`}
-          >
+          </IconButton>
+          <IconButton ref={closeRef} label="Close navigation" onClick={closeDrawer} className="desktop:hidden !size-11">
             <Icon name="x" size={16} />
-          </button>
+          </IconButton>
         </div>
         {collapsed && (
-          <button
-            type="button"
-            aria-label="Expand sidebar"
-            aria-expanded={false}
-            onClick={() => setCollapsed(false)}
-            className={`${ghostIconBtn} inline-flex size-11 self-center tablet:hidden`}
-          >
+          <IconButton label="Expand sidebar" aria-expanded={false} onClick={() => setCollapsed(false)} className="!size-11 self-center tablet:hidden">
             <Icon name="panel" size={16} />
-          </button>
+          </IconButton>
         )}
 
         <div className="flex items-center gap-2.5 p-2">
-          <span
-            aria-hidden="true"
-            className="grid size-[30px] flex-none place-items-center rounded-lg bg-[#E1E4E9] text-xs font-semibold text-[#2B3240]"
-          >
-            FR
-          </span>
+          <Avatar initials="FR" />
           <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden tablet:flex` : ""}`}>
             <strong className="truncate text-[13px] font-semibold">Fernhill Robotics, Inc.</strong>
             <span className="text-xs text-text-3">Business · 3 accounts</span>
@@ -208,8 +170,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   `tablet:h-11`,
                   collapsed ? `justify-center px-0 tablet:justify-start tablet:px-3` : "",
                   active
-                    ? "bg-surface !text-text shadow-[0_1px_2px_rgba(10,12,16,.06),0_0_0_1px_var(--border)] before:scale-y-100"
-                    : "!text-text-2 before:scale-y-0 hover:bg-hover hover:!text-text",
+                    ? "bg-nav-on text-text shadow-sm ring-1 ring-border before:scale-y-100"
+                    : "text-text-2 before:scale-y-0 hover:bg-hover hover:text-text",
                 ].join(" ")}
               >
                 <Icon name={item.icon} />
@@ -229,7 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={transactionsHref({ account: a.id })}
               onClick={closeDrawer}
               aria-label={`${a.shortName} ${formatCents(balances[a.id].postedCents)}, view ${a.name} transactions`}
-              className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] !text-text-2 transition-colors duration-150 hover:bg-hover hover:!text-text tablet:min-h-11"
+              className="flex min-h-[34px] items-center justify-between gap-2.5 rounded-[9px] px-3 text-[13px] text-text-2 transition-colors duration-150 hover:bg-hover hover:text-text tablet:min-h-11"
             >
               <span className="truncate">{a.shortName}</span>
               <SidebarBalance cents={balances[a.id].postedCents} />
@@ -249,12 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span>Demo with fictional data. Transfers are simulated, so no real money moves.</span>
           </div>
           <div className="flex items-center gap-2.5 p-1.5">
-            <span
-              aria-hidden="true"
-              className="grid size-8 flex-none place-items-center rounded-full bg-accent text-xs font-semibold text-white"
-            >
-              AB
-            </span>
+            <Avatar initials="AB" tone="accent" shape="circle" size={32} />
             <span className={`flex min-w-0 flex-1 flex-col ${lbl ? `hidden tablet:flex` : ""}`}>
               <strong className="truncate text-[13px] font-semibold">Avery Brooks</strong>
               <span className="text-xs text-text-3">Founder &amp; CEO</span>
@@ -265,64 +222,50 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div
         inert={mobileOpen}
-        className={`m-2 ml-0 flex min-h-[calc(100vh-16px)] min-w-0 flex-[999_1_560px] flex-col rounded-panel border border-border bg-surface shadow-[0_1px_3px_rgba(10,12,16,.04)] tablet:m-0 tablet:min-h-screen tablet:rounded-none tablet:border-0`}
+        className={`m-2 ml-0 flex min-h-[calc(100vh-16px)] min-w-0 flex-[999_1_560px] flex-col rounded-panel border border-border bg-surface shadow-sm tablet:m-0 tablet:min-h-screen tablet:rounded-none tablet:border-0`}
       >
         <div className="sticky top-0 z-40 rounded-t-panel border-b border-border bg-surface">
           <header className={`flex items-center gap-2.5 px-7 py-3 tablet:px-4 tablet:py-2.5`}>
-            <button
-              type="button"
+            <IconButton
               ref={openerRef}
-              aria-label="Open navigation"
+              label="Open navigation"
               aria-expanded={mobileOpen}
               aria-controls="sidebar"
               onClick={() => setMobileOpen(true)}
-              className={`${ghostIconBtn} hidden tablet:inline-flex tablet:size-11`}
+              className="desktop:hidden !size-11"
             >
               <Icon name="menu" />
-            </button>
+            </IconButton>
             <form
               role="search"
-              className="relative min-w-0 max-w-[460px] flex-1"
+              className="min-w-0 max-w-[460px] flex-1"
               onSubmit={(e) => {
                 e.preventDefault();
                 const q = query.trim();
                 router.push(q ? `/transactions?q=${encodeURIComponent(q)}` : "/transactions");
               }}
             >
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-3">
-                <Icon name="search" size={16} />
-              </span>
               <label htmlFor="gsearch" className="sr-only">
                 Search transactions
               </label>
-              <input
+              <SearchInput
                 id="gsearch"
-                type="search"
-                autoComplete="off"
                 placeholder="Search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="h-11 w-full rounded-full border border-border bg-surface-2 pl-[38px] pr-3 text-sm outline-none transition-[border-color,box-shadow] focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-ring)] not-phone:h-[38px] not-phone:pr-14"
+                trailing={<Kbd>Enter</Kbd>}
               />
-              <kbd className="absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-full border border-border bg-surface px-[7px] py-0.5 font-sans text-[11px] font-medium text-text-3 not-phone:block">
-                Enter
-              </kbd>
             </form>
             <div className="flex-1" />
-            <span
-              className={`inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-warn/20 bg-warn-soft px-2.5 text-xs font-semibold text-warn tablet:hidden`}
-            >
+            <Badge tone="warning" size="lg" outlined className="tablet:hidden">
               <Icon name="info" size={14} />
               {BADGE_TEXT}
-            </span>
-            <Link
-              href="/transfers"
-              aria-label="Transfer"
-              className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-accent-fill bg-accent-fill px-[15px] text-[13.5px] font-medium !text-accent-ink hover:brightness-[1.07] not-phone:h-9"
-            >
+            </Badge>
+            <ThemeToggle />
+            <LinkButton href="/transfers" variant="accent" aria-label="Transfer" className="min-w-11">
               <Icon name="swap" size={16} />
               <span className="phone:hidden">Transfer</span>
-            </Link>
+            </LinkButton>
           </header>
           <div
             className={`hidden items-center justify-center gap-1.5 border-t border-border bg-warn-soft px-4 py-1.5 text-xs font-semibold text-warn tablet:flex`}

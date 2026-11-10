@@ -35,6 +35,9 @@ const PATHS = {
   shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   alert: "M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0 M12 8v4 M12 16h.01",
   chevLeft: "m15 18-6-6 6-6",
+  chevUp: "m18 15-6-6-6 6",
+  chevDown: "m6 9 6 6 6-6",
+  chevUpDown: "m7 15 5 5 5-5 M7 9l5-5 5 5",
   arrowRight: "M5 12h14 M12 5l7 7-7 7",
 } as const;
 
@@ -44,7 +47,8 @@ export function isIconName(name: string): name is IconName {
   return name in PATHS;
 }
 
-export function Icon({ name, size = 18 }: { name: IconName; size?: 14 | 16 | 18 | 22 }) {
+/** Inline stroke icon, decorative (aria-hidden). Usage: <Icon name="swap" size={16} /> */
+export function Icon({ name, size = 18, strokeWidth = 1.75 }: { name: IconName; size?: number; strokeWidth?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -52,7 +56,7 @@ export function Icon({ name, size = 18 }: { name: IconName; size?: 14 | 16 | 18 
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.75}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

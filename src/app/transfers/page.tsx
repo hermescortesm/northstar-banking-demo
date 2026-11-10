@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
-import { TransfersHeader } from "@/components/transfers/TransfersHeader";
+import { PageHeader } from "@/components/PageHeader";
 import { TransferFlow } from "@/components/transfers/TransferFlow";
+import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = { title: "Transfers" };
 
 export default function TransfersPage() {
   return (
     <>
-      <TransfersHeader />
+      <PageHeader
+        title="Transfers"
+        description="Move money between your Northstar accounts."
+        actions={<Badge tone="warning" dot outlined>Simulation</Badge>}
+      />
       <TransferFlow />
     </>
   );
