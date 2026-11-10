@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
+const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Northstar", template: "%s | Northstar" },
@@ -16,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full">
+    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+      <body className="min-h-full font-sans">
         <AppShell>{children}</AppShell>
       </body>
     </html>
